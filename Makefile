@@ -35,7 +35,7 @@ MKG3AFLAGS := -n basic:Mandelbrot -i uns:../unselected.bmp -i sel:../selected.bm
 # (LTO). Doing so will usually allow the compiler to generate much better code
 # (smaller and/or faster), but may expose bugs in your code that don't cause
 # any trouble without LTO enabled.
-CFLAGS	= -Os -Wall $(MACHDEP) $(INCLUDE) -ffunction-sections -fdata-sections
+CFLAGS	= -O3 -Wall $(MACHDEP) $(INCLUDE) -ffunction-sections -fdata-sections -flto -ffast-math
 CXXFLAGS	=	$(CFLAGS) -fno-exceptions
 
 LDFLAGS	= $(MACHDEP) -T$(FXCGSDK)/toolchain/prizm.x -Wl,-static -Wl,-gc-sections
