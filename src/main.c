@@ -16,7 +16,7 @@ void draw(float centre_x, float centre_y, float scale){
 	register float cr;
     for(unsigned int i = 0; i<SCREEN_HEIGHT; i++)
 	{
-		ci = ((float) i /SCREEN_HEIGHT)*scale- centre_y;
+		ci = ((float) i /SCREEN_HEIGHT)*scale - centre_y;
 		for(unsigned int j = 0; j<SCREEN_WIDTH; j++)
 		{
 			cr =((float) j /SCREEN_WIDTH)*scale*1.5 - centre_x;
@@ -39,9 +39,9 @@ void draw(float centre_x, float centre_y, float scale){
 			
 			
 
-			unsigned short shade = (iter == MAX_LOOPS) ;
+			unsigned short shade = 31- 31 * iter/ MAX_LOOPS ;
 			
-			Bdisp_SetPointWB_VRAM(j,i,shade);
+			Bdisp_SetPointWB_VRAM(j,i,shade*0x0841);
 			
 		}
 	}
