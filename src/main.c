@@ -59,7 +59,7 @@ int main(void){
     int key;
    
 	int running = 1;
-	double centre_x =1.0;
+	double centre_x =2.0;
 	double centre_y=1.0;
 	double scale = 2.0;
 	draw(centre_x,centre_y, scale);
