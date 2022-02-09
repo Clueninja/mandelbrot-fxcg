@@ -35,8 +35,13 @@ void draw(double centre_x, double centre_y, double scale){
 				
 				iter+=1;
 			}
-			unsigned short color = 0xFFFF-iter * 0xFFFF/MAX_LOOPS;
-			Bdisp_SetPointWB_VRAM(j,i,color);
+			
+			
+			/*Function originally written by calc84maniac.*/
+			unsigned short shade = 31 * iter/MAX_LOOPS ;
+			shade = shade * 0x0841;
+			
+			Bdisp_SetPointWB_VRAM(j,i,shade);
 			
 		}
 	}
