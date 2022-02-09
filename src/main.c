@@ -2,7 +2,7 @@
 #include <fxcg/keyboard.h>
 #include <string.h>
 #include <stdlib.h>
-#include "fxcg_fre.h"
+#include "fxcg_freq.h"
 
 
 #define SCREEN_WIDTH 384
@@ -61,7 +61,7 @@ void draw(float centre_x, float centre_y, float scale){
 }
 
 int main(void){
-	change_freq(PLL_24x);
+	//change_freq(PLL_24x);
 	float step = 0.25;
 	
     Bdisp_EnableColor(1);//Enable 16-bit mode
@@ -117,7 +117,7 @@ int main(void){
 		}
 		
     }
-    change_freq(PLL_16x);
+    //change_freq(PLL_16x);
     return 0;
 }
 
