@@ -10,20 +10,28 @@
 #define SCREEN_HEIGHT 192
 #define MAX_LOOPS 30
 
+
 short unsigned int heightcolor(float z, float z_min, float z_max);
 
-void draw(float centre_x, float centre_y, float scale){
+unsigned short Bdisp_GetPointWB_VRAM(int x, int y)
+{
+	return Bdisp_GetPoint_VRAM(x, y+24);
+}
+
+// draws into VRAM rectangle of mandelbrot corner t_x, t_y ...
+// scale zooms into c_x, c_y
+void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int h, float scale, float c_x, float c_y)
+{
 	
 	HourGlass();
 	register float ci;
 	register float cr;
-    for(unsigned int i = 0; i<SCREEN_HEIGHT; i++)
+	for(unsigned int i = t_y; i <= t_y + h; i++)
 	{
-		ci = ((float) i /SCREEN_HEIGHT -centre_y)*scale ;
-		for(unsigned int j = 0; j<SCREEN_WIDTH; j++)
+		ci = c_y + scale * (float) i/SCREEN_WIDTH;
+		for(unsigned int j = t_x; j <= t_x + w; j++)
 		{
-			cr =((float) j /SCREEN_WIDTH -centre_x)*scale*1.5 ;
-			
+			cr =c_x + scale * (float)j/SCREEN_WIDTH ;
 			
 			
 			register float zr =0.0;
@@ -40,30 +48,91 @@ void draw(float centre_x, float centre_y, float scale){
 				iter+=1;
 			}
 			
-			
-
 			unsigned short colour = heightcolor((float)iter, 0.0f, (float) MAX_LOOPS);
 			
 			Bdisp_SetPointWB_VRAM(j,i,colour);
 			
 		}
 	}
+			
+}
+
+// off_x number of pixels to see to the right
+void draw_offset_x(int off_x, float scale, float c_x, float c_y){
 	
-	int x = 0; // This function uses pixels
-	int y = 0;
-	PrintMini(&x, &y, "Number Of Iterations:", 0, 0xffffffff, 0,0,COLOR_DARKGREEN, COLOR_GRAY, 1,0);
+	HourGlass();
 	
-	char buffer[14]; 
-	itoa(MAX_LOOPS,(unsigned char*)buffer); // Leave the garbage bytes alone
-	PrintMini(&x,&y,buffer, 0, 0xffffffff, 0,0,COLOR_DARKGREEN, COLOR_GRAY, 1,0);
+	if (off_x>0)
+	{
+		for(unsigned int j = off_x; j<SCREEN_WIDTH; j++)
+		{
+			for(unsigned int i = 0; i<SCREEN_HEIGHT; i++)
+			{
+				unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
+				Bdisp_SetPointWB_VRAM(j-off_x,i,colour);
+			}
+		}
+		mandelbrot(SCREEN_WIDTH-off_x, 0,off_x, SCREEN_HEIGHT, scale, c_x, c_y );
+	}
+	else 
+	{	
+		for(unsigned int j = SCREEN_WIDTH+off_x; j>0; j--)
+		{
+			for(unsigned int i = 0; i<SCREEN_HEIGHT; i++)
+			{
+				unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
+				Bdisp_SetPointWB_VRAM(j-off_x,i,colour);
+			}
+		}
+		mandelbrot(0,0,-off_x, SCREEN_HEIGHT, scale, c_x, c_y );
+			
+	}
 	
 	Bdisp_PutDisp_DD();
+	
+}
 
+void draw_offset_y(int off_y, float scale, float c_x, float c_y){
+	
+	HourGlass();
+	if (off_y>0)
+	{
+		for(unsigned int i = off_y; i<SCREEN_HEIGHT; i++)
+		{
+			for(unsigned int j = 0; j<SCREEN_WIDTH; j++)
+			{
+				unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
+				Bdisp_SetPointWB_VRAM(j,i-off_y,colour);
+			}
+		}
+		mandelbrot(0,SCREEN_HEIGHT-off_y,SCREEN_WIDTH, off_y, scale, c_x, c_y );
+	}
+	else
+	{
+		for(unsigned int i = SCREEN_HEIGHT-off_y; i>0; i--)
+		{
+			for(unsigned int j = 0; j<SCREEN_WIDTH; j++)
+			{
+				unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
+				Bdisp_SetPointWB_VRAM(j,i-off_y,colour);
+			}
+		}
+		mandelbrot(0,0,SCREEN_WIDTH, -off_y, scale, c_x, c_y );
+	}
+	
+	Bdisp_PutDisp_DD();
+}
+
+void draw_scale(float scale, float c_x, float c_y)
+{
+	mandelbrot(0,0,SCREEN_WIDTH, SCREEN_HEIGHT, scale, c_x, c_y);
+	Bdisp_PutDisp_DD();
+	
 }
 
 int main(void){
 	//change_freq(PLL_24x);
-	float step = 0.25;
+	int step = 20;
 	
     Bdisp_EnableColor(1);//Enable 16-bit mode
     
@@ -72,10 +141,10 @@ int main(void){
     int key;
    
 	int running = 1;
-	float centre_x =0.5;
-	float centre_y = 0.5;
+	float c_x =0.0;
+	float c_y = 0.0;
 	float scale = 2.0;
-	draw(centre_x,centre_y, scale);
+	draw_scale(scale, c_x,c_y);
     while(running)
     {
     	
@@ -86,33 +155,33 @@ int main(void){
 			 	break;
 			 	
 			 case KEY_CTRL_UP:
-			 	centre_y+=step;
-			 	draw(centre_x, centre_y, scale);
+			 	c_y = c_y - scale * ((float)step/SCREEN_WIDTH);
+			 	draw_offset_y(-step,scale, c_x, c_y);
 			 	break;
 			 	
 			 case KEY_CTRL_DOWN:
-			 	centre_y-=step;
-			 	draw(centre_x, centre_y,scale);
+			 	c_y = c_y + scale * ((float)step/SCREEN_WIDTH);
+			 	draw_offset_y(step,scale, c_x, c_y);
 			 	break;
 			 	
 			 case KEY_CTRL_LEFT:
-			 	centre_x+=step;
-			 	draw(centre_x, centre_y,scale);
+			 	c_x = c_x - scale * ((float)step/SCREEN_WIDTH);
+			 	draw_offset_x(-step,scale, c_x, c_y);
 			 	break;
 			 
 			 case KEY_CTRL_RIGHT:
-			 	centre_x-=step;
-			 	draw(centre_x, centre_y,scale);
+			 	c_x = c_x + scale * ((float)step/SCREEN_WIDTH);
+			 	draw_offset_x(step, scale,c_x, c_y);
 			 	break;
 			 
 			 case KEY_CHAR_PLUS:
 				scale*=0.75;
-				draw(centre_x, centre_y, scale);
+				draw_scale(scale, c_x, c_y);
 				break;
 				
 			 case KEY_CHAR_MINUS:
 				scale*=1.25;
-				draw(centre_x, centre_y, scale);
+				draw_scale(scale, c_x, c_y);
 				break;
 				
 		}
