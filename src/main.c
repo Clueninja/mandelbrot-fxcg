@@ -1,5 +1,6 @@
 #include <fxcg/display.h>
 #include <fxcg/keyboard.h>
+#include <fxcg/misc.h>
 #include <string.h>
 #include <stdlib.h>
 #include "fxcg_freq.h"
@@ -7,7 +8,7 @@
 
 #define SCREEN_WIDTH 384
 #define SCREEN_HEIGHT 192
-#define MAX_LOOPS 10
+#define MAX_LOOPS 30
 
 short unsigned int heightcolor(float z, float z_min, float z_max);
 
