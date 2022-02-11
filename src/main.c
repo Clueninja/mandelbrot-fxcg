@@ -3,7 +3,6 @@
 #include <fxcg/misc.h>
 #include <string.h>
 #include <stdlib.h>
-#include "fxcg_freq.h"
 
 
 #define SCREEN_WIDTH 384
@@ -16,6 +15,11 @@ short unsigned int heightcolor(float z, float z_min, float z_max);
 unsigned short Bdisp_GetPointWB_VRAM(int x, int y)
 {
 	return Bdisp_GetPoint_VRAM(x, y+24);
+}
+
+unsigned int FastCheck(float x, float y)
+{
+	
 }
 
 // draws into VRAM rectangle of mandelbrot corner t_x, t_y ...
@@ -32,6 +36,8 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 		for(unsigned int j = t_x; j <= t_x + w; j++)
 		{
 			cr =c_x + scale * (float)j/SCREEN_WIDTH ;
+			
+			
 			
 			
 			register float zr =0.0;
