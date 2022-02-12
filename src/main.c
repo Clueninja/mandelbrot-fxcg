@@ -169,7 +169,7 @@ int main(void){
    
 	int running = 1;
 	float c_x =-2.0;
-	float c_y = -2.0;
+	float c_y = -1.0;
 	float scale = 4.0;
 	draw_scale(scale, c_x,c_y);
     while(running)
