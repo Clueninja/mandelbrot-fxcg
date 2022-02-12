@@ -16,10 +16,22 @@ unsigned short Bdisp_GetPointWB_VRAM(int x, int y)
 {
 	return Bdisp_GetPoint_VRAM(x, y+24);
 }
-
-unsigned int FastCheck(float x, float y)
+// Optimisation check if it is in main cardiods 
+unsigned int inCardiod(const float r, const float i)
 {
+	float x = r-0.25f;
+	float y = i;
+	if ((x*x + y*y + 0.5f*x) * (x*x + y*y + 0.5f*x) - 0.25f * (x*x + y*y)<0.0)
+		return 1;
 	
+	x = r+1.0f;
+	if (x*x + y*y < (1.0/16.0))
+		return 1;
+	
+	x = r+1.3125f;
+	if (x*x + y*y < (1.0/(16.0*16.0)))
+		return 1;
+	return 0;
 }
 
 // draws into VRAM rectangle of mandelbrot corner t_x, t_y ...
@@ -38,25 +50,34 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 			cr =c_x + scale * (float)j/SCREEN_WIDTH ;
 			
 			
+			if (!inCardiod(cr,ci))
+			{
 			
-			
-			register float zr =0.0;
-			register float zi = 0.0;
-			
-			unsigned short iter = 0;
-			while ((iter < MAX_LOOPS) && (zr*zr + zi*zi < 4.0))
-			{	
-				float temp =zr*zr-zi*zi + cr;
+				register float zr =0.0;
+				register float zi = 0.0;
 				
-				zi = 2.0 * zr * zi + ci;
-				zr = temp;
-				
-				iter+=1;
+				unsigned short iter = 0;
+				while ((iter < MAX_LOOPS) && (zr*zr + zi*zi < 4.0))
+				{	
+					float temp =zr*zr-zi*zi + cr;
+					
+					zi = 2.0 * zr * zi + ci;
+					zr = temp;
+					
+					iter+=1;
+				}
+				unsigned short colour = heightcolor((float)iter, 0.0f, (float) MAX_LOOPS);
+			
+				Bdisp_SetPointWB_VRAM(j,i,colour);
+			}
+			else
+			{
+				unsigned short colour = heightcolor((float) MAX_LOOPS, 0.0f, (float) MAX_LOOPS);
+			
+				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
 			
-			unsigned short colour = heightcolor((float)iter, 0.0f, (float) MAX_LOOPS);
 			
-			Bdisp_SetPointWB_VRAM(j,i,colour);
 			
 		}
 	}
@@ -147,9 +168,9 @@ int main(void){
     int key;
    
 	int running = 1;
-	float c_x =0.0;
-	float c_y = 0.0;
-	float scale = 2.0;
+	float c_x =-2.0;
+	float c_y = -2.0;
+	float scale = 4.0;
 	draw_scale(scale, c_x,c_y);
     while(running)
     {
