@@ -52,10 +52,10 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 	
 	for(unsigned int i = t_y; i <= t_y + h; i++)
 	{
-		ci = c_y + scale * (float) i/SCREEN_WIDTH;
+		ci = c_y - scale * 0.5 + scale * (float) i/SCREEN_WIDTH;
 		for(unsigned int j = t_x; j <= t_x + w; j++)
 		{
-			cr =c_x + scale * (float)j/SCREEN_WIDTH ;
+			cr =c_x - scale * 0.5 + scale * (float)j/SCREEN_WIDTH ;
 			
 			
 			if (!inCardiod(cr,ci))
@@ -136,9 +136,9 @@ void draw_offset_y(int off_y, float scale, float c_x, float c_y){
 	HourGlass();
 	if (off_y>0)
 	{
-		for(unsigned int i = off_y; i<=SCREEN_HEIGHT; i++)
+		for(unsigned int i = off_y; i<SCREEN_HEIGHT; i++)
 		{
-			for(unsigned int j = 0; j<=SCREEN_WIDTH; j++)
+			for(unsigned int j = 0; j<SCREEN_WIDTH; j++)
 			{
 				unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
 				Bdisp_SetPointWB_VRAM(j,i-off_y,colour);
@@ -151,7 +151,7 @@ void draw_offset_y(int off_y, float scale, float c_x, float c_y){
 		off_y*=-1;
 		for(unsigned int i = SCREEN_HEIGHT-off_y; i>=0; i--)
 		{
-			for(unsigned int j = 0; j<=SCREEN_WIDTH; j++)
+			for(unsigned int j = 0; j<SCREEN_WIDTH; j++)
 			{
 				unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
 				Bdisp_SetPointWB_VRAM(j,i+off_y,colour);
