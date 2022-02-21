@@ -88,12 +88,8 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 			
 				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
-			
-			
-			
 		}
-	}
-			
+	}			
 }
 
 // off_x number of pixels to see to the right
@@ -116,7 +112,7 @@ void draw_offset_x(int off_x, float scale, float c_x, float c_y){
 	else 
 	{
 		off_x*=-1;
-		for(unsigned int j = SCREEN_WIDTH-off_x; j>=0; j--)
+		for(unsigned int j = SCREEN_WIDTH-off_x; j>0; j--)
 		{
 			for(unsigned int i = 0; i<SCREEN_HEIGHT; i++)
 			{
@@ -149,7 +145,7 @@ void draw_offset_y(int off_y, float scale, float c_x, float c_y){
 	else
 	{	
 		off_y*=-1;
-		for(unsigned int i = SCREEN_HEIGHT-off_y; i>=0; i--)
+		for(unsigned int i = SCREEN_HEIGHT-off_y; i>0; i--)
 		{
 			for(unsigned int j = 0; j<SCREEN_WIDTH; j++)
 			{
@@ -180,8 +176,8 @@ int main(void){
     int key;
    
 	int running = 1;
-	float c_x =-2.0;
-	float c_y = -1.0;
+	float c_x = 0.0;
+	float c_y = 0.0;
 	float scale = 4.0;
 	float zoom = 0.25f;
 	draw_scale(scale, c_x,c_y);
