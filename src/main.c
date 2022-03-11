@@ -168,7 +168,7 @@ void draw_scale(float scale, float c_x, float c_y)
 
 int main(void){
 	//change_freq(PLL_24x);
-	int step = 60;	
+	int step = 1;
     Bdisp_EnableColor(1);//Enable 16-bit mode
     
     Bdisp_AllClr_VRAM();
@@ -179,7 +179,7 @@ int main(void){
 	float c_x = 0.0;
 	float c_y = 0.0;
 	float scale = 4.0;
-	float zoom = 0.25f;
+	float zoom = 0.5f;
 	draw_scale(scale, c_x,c_y);
     while(running)
     {
