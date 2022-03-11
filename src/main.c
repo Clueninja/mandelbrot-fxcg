@@ -3,6 +3,7 @@
 #include <fxcg/misc.h>
 #include <string.h>
 #include <stdlib.h>
+#include "fxcg_freq.h"
 
 
 #define SCREEN_WIDTH 384
@@ -38,7 +39,6 @@ unsigned int inCardiod(const float r, const float i)
 // scale zooms into c_x, c_y
 void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int h, float scale, float c_x, float c_y)
 {
-	
 	HourGlass();
 	
 	register float ci;
@@ -52,21 +52,21 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 	
 	for(unsigned int i = t_y; i <= t_y + h; i++)
 	{
-		ci = c_y - scale * 0.5 + scale * (float) i/SCREEN_WIDTH;
+		ci = c_y -scale*0.5+ scale * (float) i/SCREEN_WIDTH;
 		for(unsigned int j = t_x; j <= t_x + w; j++)
 		{
-			cr =c_x - scale * 0.5 + scale * (float)j/SCREEN_WIDTH ;
-			
+			cr =c_x -scale * 0.5 + scale * (float)j/SCREEN_WIDTH ;
 			
 			if (!inCardiod(cr,ci))
 			{
+			    
 				zr=0.0;
 				zi=0.0;
 				zrsqrd=0.0;
 				zisqrd = 0.0;
 				
+				unsigned int iter = 0;
 				
-				unsigned short iter = 0;
 				while ((iter < MAX_LOOPS) && (zrsqrd + zisqrd < 4.0))
 				{	
 					float temp =zrsqrd-zisqrd + cr;
@@ -78,18 +78,17 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 					
 					iter+=1;
 				}
+				
 				unsigned short colour = heightcolor((float)iter, 0.0f, (float) MAX_LOOPS);
-			
 				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
 			else
 			{
 				unsigned short colour = heightcolor((float) MAX_LOOPS, 0.0f, (float) MAX_LOOPS);
-			
 				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
 		}
-	}			
+	}
 }
 
 // off_x number of pixels to see to the right
@@ -122,9 +121,7 @@ void draw_offset_x(int off_x, float scale, float c_x, float c_y){
 		}
 		mandelbrot(0,0,off_x, SCREEN_HEIGHT, scale, c_x, c_y );
 	}
-	
 	Bdisp_PutDisp_DD();
-	
 }
 
 void draw_offset_y(int off_y, float scale, float c_x, float c_y){
@@ -167,63 +164,58 @@ void draw_scale(float scale, float c_x, float c_y)
 }
 
 int main(void){
-	//change_freq(PLL_24x);
-	int step = 1;
+	int step = 5;
     Bdisp_EnableColor(1);//Enable 16-bit mode
-    
     Bdisp_AllClr_VRAM();
     
     int key;
-   
 	int running = 1;
-	float c_x = 0.0;
-	float c_y = 0.0;
+	float c_x = -1.0;
+	float c_y = 1.0;
 	float scale = 4.0;
 	float zoom = 0.5f;
+	
 	draw_scale(scale, c_x,c_y);
     while(running)
     {
-    	
 		GetKey(&key);
 		switch (key){
-			 case KEY_CTRL_EXE:
-			 	running = 0;
-			 	break;
-			 	
-			 case KEY_CTRL_UP:
-			 	c_y = c_y - scale * ((float)step/SCREEN_WIDTH);
-			 	draw_offset_y(-step,scale, c_x, c_y);
-			 	break;
-			 	
-			 case KEY_CTRL_DOWN:
-			 	c_y = c_y + scale * ((float)step/SCREEN_WIDTH);
-			 	draw_offset_y(step,scale, c_x, c_y);
-			 	break;
-			 	
-			 case KEY_CTRL_LEFT:
-			 	c_x = c_x - scale * ((float)step/SCREEN_WIDTH);
-			 	draw_offset_x(-step,scale, c_x, c_y);
-			 	break;
-			 
-			 case KEY_CTRL_RIGHT:
-			 	c_x = c_x + scale * ((float)step/SCREEN_WIDTH);
-			 	draw_offset_x(step, scale,c_x, c_y);
-			 	break;
-			 
-			 case KEY_CHAR_PLUS:
+			case KEY_CTRL_EXE:
+				running = 0;
+				break;
+				
+			case KEY_CTRL_UP:
+		    	c_y = c_y - scale * ((float)step/SCREEN_WIDTH);
+				draw_offset_y(-step,scale, c_x, c_y);
+				break;
+				
+			case KEY_CTRL_DOWN:
+				c_y = c_y + scale * ((float)step/SCREEN_WIDTH);
+				draw_offset_y(step,scale, c_x, c_y);
+				break;
+				
+			case KEY_CTRL_LEFT:
+				c_x = c_x - scale * ((float)step/SCREEN_WIDTH);
+				draw_offset_x(-step,scale, c_x, c_y);
+				break;
+			
+			case KEY_CTRL_RIGHT:
+				c_x = c_x + scale * ((float)step/SCREEN_WIDTH);
+				draw_offset_x(step, scale,c_x, c_y);
+				break;
+			
+			case KEY_CHAR_PLUS:
 				scale*=zoom;
 				draw_scale(scale, c_x, c_y);
 				break;
 				
-			 case KEY_CHAR_MINUS:
+			case KEY_CHAR_MINUS:
 				scale*=1.0/zoom;
 				draw_scale(scale, c_x, c_y);
 				break;
 				
 		}
-		
     }
-    //change_freq(PLL_16x);
     return 0;
 }
 
