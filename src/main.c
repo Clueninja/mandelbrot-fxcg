@@ -213,7 +213,6 @@ int main(void){
 				scale*=1.0/zoom;
 				draw_scale(scale, c_x, c_y);
 				break;
-				
 		}
     }
     return 0;
