@@ -72,20 +72,15 @@
 #define FIXEDPT_BITS	32
 #endif
 
-#include <stdint.h>
 
 #if FIXEDPT_BITS == 32
-typedef int32_t fixedpt;
-typedef	int64_t	fixedptd;
-typedef	uint32_t fixedptu;
-typedef	uint64_t fixedptud;
-#elif FIXEDPT_BITS == 64
-typedef int64_t fixedpt;
-typedef	__int128_t fixedptd;
-typedef	uint64_t fixedptu;
-typedef	__uint128_t fixedptud;
+typedef int fixedpt;
+typedef	long	fixedptd;
+typedef	unsigned int fixedptu;
+typedef	unsigned long fixedptud;
+
 #else
-#error "FIXEDPT_BITS must be equal to 32 or 64"
+#error "FIXEDPT_BITS must be equal to 32"
 #endif
 
 #ifndef FIXEDPT_WBITS
