@@ -3,6 +3,7 @@
 #include <fxcg/misc.h>
 #include <string.h>
 #include <stdlib.h>
+#include "fixedptc.h"
 
 
 #define SCREEN_WIDTH 384
@@ -10,18 +11,35 @@
 #define MAX_LOOPS 30
 
 
-short unsigned int heightcolor(float z, float z_min, float z_max);
+short unsigned int heightcolor(fixedpt z, fixedpt z_min, fixedpt z_max);
 
 unsigned short Bdisp_GetPointWB_VRAM(int x, int y)
 {
 	return Bdisp_GetPoint_VRAM(x, y+24);
 }
 // Optimisation check if it is in main cardiods 
-unsigned int inCardiod(const float r, const float i)
+unsigned int inCardiod(const fixedpt r, const fixedpt i)
 {
-	float x = r-0.25f;
-	float y = i;
-	if ((x*x + y*y + 0.5f*x) * (x*x + y*y + 0.5f*x) - 0.25f * (x*x + y*y)<0.0)
+	fixedpt x = fixedpt_sub( r, FIXEDPT_ONE>>2);
+	fixedpt y = i;
+	if (
+	    fixedpt_mul(
+	        fixedpt_add(
+	            fixedpt_add(
+	                fixedpt_mul(x, x),
+	                fixedpt_mul(y, y)
+	            ), 
+	            fixedpt_mul(FIXEDPT_ONE>>1, x)
+	        ),
+	        fixedpt_add(
+	            fixedpt_add(
+	                fixedpt_mul(x, x),
+	                fixedpt_mul(y, y)
+	            ), 
+	            fixedpt_mul(FIXEDPT_ONE>>1, x)
+	        ),
+	      )
+	      - 0.25f * (x*x + y*y)<0.0)
 		return 1;
 	
 	x = r+1.0f;
@@ -36,26 +54,26 @@ unsigned int inCardiod(const float r, const float i)
 
 // draws into VRAM rectangle of mandelbrot corner t_x, t_y ...
 // scale zooms into c_x, c_y
-void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int h, float scale, float c_x, float c_y)
+void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int h, fixedpt scale, fixedpt c_x, fixedpt c_y)
 {
 	
 	HourGlass();
 	
-	register float ci;
-	register float cr;
+	register fixedpt ci;
+	register fixedpt cr;
 	
-	register float zr;
-	register float zi;
+	register fixedpt zr;
+	register fixedpt zi;
 	
-	register float zrsqrd;
-	register float zisqrd;
+	register fixedpt zrsqrd;
+	register fixedpt zisqrd;
 	
 	for(unsigned int i = t_y; i <= t_y + h; i++)
 	{
-		ci = c_y - scale * 0.5 + scale * (float) i/SCREEN_WIDTH;
+		ci = c_y - scale * 0.5 + scale * (fixedpt) i/SCREEN_WIDTH;
 		for(unsigned int j = t_x; j <= t_x + w; j++)
 		{
-			cr =c_x - scale * 0.5 + scale * (float)j/SCREEN_WIDTH ;
+			cr =c_x - scale * 0.5 + scale * (fixedpt)j/SCREEN_WIDTH ;
 			
 			
 			if (!inCardiod(cr,ci))
@@ -69,7 +87,7 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 				unsigned short iter = 0;
 				while ((iter < MAX_LOOPS) && (zrsqrd + zisqrd < 4.0))
 				{	
-					float temp =zrsqrd-zisqrd + cr;
+					fixedpt temp =zrsqrd-zisqrd + cr;
 					
 					zi = 2.0 * zr * zi + ci;
 					zr = temp;
@@ -78,13 +96,13 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 					
 					iter+=1;
 				}
-				unsigned short colour = heightcolor((float)iter, 0.0f, (float) MAX_LOOPS);
+				unsigned short colour = heightcolor((fixedpt)iter, 0.0f, (fixedpt) MAX_LOOPS);
 			
 				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
 			else
 			{
-				unsigned short colour = heightcolor((float) MAX_LOOPS, 0.0f, (float) MAX_LOOPS);
+				unsigned short colour = heightcolor((fixedpt) MAX_LOOPS, 0.0f, (fixedpt) MAX_LOOPS);
 			
 				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
@@ -93,7 +111,7 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 }
 
 // off_x number of pixels to see to the right
-void draw_offset_x(int off_x, float scale, float c_x, float c_y){
+void draw_offset_x(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y){
 	
 	HourGlass();
 	
@@ -127,7 +145,7 @@ void draw_offset_x(int off_x, float scale, float c_x, float c_y){
 	
 }
 
-void draw_offset_y(int off_y, float scale, float c_x, float c_y){
+void draw_offset_y(int off_y, fixedpt scale, fixedpt c_x, fixedpt c_y){
 	
 	HourGlass();
 	if (off_y>0)
@@ -159,7 +177,7 @@ void draw_offset_y(int off_y, float scale, float c_x, float c_y){
 	Bdisp_PutDisp_DD();
 }
 
-void draw_scale(float scale, float c_x, float c_y)
+void draw_scale(fixedpt scale, fixedpt c_x, fixedpt c_y)
 {
 	mandelbrot(0,0,SCREEN_WIDTH, SCREEN_HEIGHT, scale, c_x, c_y);
 	Bdisp_PutDisp_DD();
@@ -176,10 +194,10 @@ int main(void){
     int key;
    
 	int running = 1;
-	float c_x = 0.0;
-	float c_y = 0.0;
-	float scale = 4.0;
-	float zoom = 0.5f;
+	fixedpt c_x = 0.0;
+	fixedpt c_y = 0.0;
+	fixedpt scale = 4.0;
+	fixedpt zoom = 0.5f;
 	draw_scale(scale, c_x,c_y);
     while(running)
     {
@@ -191,22 +209,22 @@ int main(void){
 			 	break;
 			 	
 			 case KEY_CTRL_UP:
-			 	c_y = c_y - scale * ((float)step/SCREEN_WIDTH);
+			 	c_y = c_y - scale * ((fixedpt)step/SCREEN_WIDTH);
 			 	draw_offset_y(-step,scale, c_x, c_y);
 			 	break;
 			 	
 			 case KEY_CTRL_DOWN:
-			 	c_y = c_y + scale * ((float)step/SCREEN_WIDTH);
+			 	c_y = c_y + scale * ((fixedpt)step/SCREEN_WIDTH);
 			 	draw_offset_y(step,scale, c_x, c_y);
 			 	break;
 			 	
 			 case KEY_CTRL_LEFT:
-			 	c_x = c_x - scale * ((float)step/SCREEN_WIDTH);
+			 	c_x = c_x - scale * ((fixedpt)step/SCREEN_WIDTH);
 			 	draw_offset_x(-step,scale, c_x, c_y);
 			 	break;
 			 
 			 case KEY_CTRL_RIGHT:
-			 	c_x = c_x + scale * ((float)step/SCREEN_WIDTH);
+			 	c_x = c_x + scale * ((fixedpt)step/SCREEN_WIDTH);
 			 	draw_offset_x(step, scale,c_x, c_y);
 			 	break;
 			 
@@ -228,13 +246,13 @@ int main(void){
 }
 
 /*Created by Christopher "Kerm Martian" Mitchell*/
-short unsigned int heightcolor(float z, float z_min, float z_max) {
-         float frac = ((z-z_min)/(z_max-z_min));
+short unsigned int heightcolor(fixedpt z, fixedpt z_min, fixedpt z_max) {
+         fixedpt frac = ((z-z_min)/(z_max-z_min));
          
          //color!
-         float r = (0.25f)-frac;
-         float g = (0.5f)-frac;
-         float b = (0.75f)-frac;
+         fixedpt r = (0.25f)-frac;
+         fixedpt g = (0.5f)-frac;
+         fixedpt b = (0.75f)-frac;
 
          //calculate the R/G/B values
          r = (r>0.f)?r:-r; g = (g>0.f)?g:-g; b = (b>0.f)?b:-b;   //absolute value
