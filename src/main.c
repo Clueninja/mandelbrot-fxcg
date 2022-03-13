@@ -58,10 +58,10 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 	
 	for(unsigned int i = t_y; i <= t_y + h; i++)
 	{
-		ci =  c_y - fixedpt_mul(scale, FIXEDPT_ONE>>1) + fixedpt_mul (scale,  fixedpt_div(fixedpt_fromint(i), fixedpt_fromint(SCREEN_WIDTH)));
+		ci =  c_y - fixedpt_mul(scale, FIXEDPT_ONE>>1) + fixedpt_div(fixedpt_mul (scale,  fixedpt_fromint(i)), fixedpt_fromint(SCREEN_WIDTH));
 		for(unsigned int j = t_x; j <= t_x + w; j++)
 		{
-			cr =  c_x - fixedpt_mul(scale, FIXEDPT_ONE>>1) + fixedpt_mul (scale,  fixedpt_div(fixedpt_fromint(j), fixedpt_fromint(SCREEN_WIDTH)));
+			cr =  c_x - fixedpt_mul(scale, FIXEDPT_ONE>>1) + fixedpt_div(fixedpt_mul (scale,  fixedpt_fromint(j)), fixedpt_fromint(SCREEN_WIDTH));
 			
 			if (!inCardiod(cr,ci))
 			{
@@ -98,69 +98,59 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 }
 
 // off_x number of pixels to see to the right
-void draw_offset_x(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y){
-	
+void draw_offset_right(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y){
 	HourGlass();
-	
-	if (off_x>0)
+	for(unsigned int j = off_x; j<SCREEN_WIDTH; j++)
 	{
-		for(unsigned int j = off_x; j<SCREEN_WIDTH; j++)
+		for(unsigned int i = 0; i<SCREEN_HEIGHT; i++)
 		{
-			for(unsigned int i = 0; i<SCREEN_HEIGHT; i++)
-			{
-				unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
-				Bdisp_SetPointWB_VRAM(j-off_x,i,colour);
-			}
+			unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
+			Bdisp_SetPointWB_VRAM(j-off_x,i,colour);
 		}
-		mandelbrot(SCREEN_WIDTH-off_x, 0,off_x, SCREEN_HEIGHT, scale, c_x, c_y );
 	}
-	else 
-	{
-		off_x*=-1;
-		for(unsigned int j = SCREEN_WIDTH-off_x; j>0; j--)
-		{
-			for(unsigned int i = 0; i<SCREEN_HEIGHT; i++)
-			{
-				unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
-				Bdisp_SetPointWB_VRAM(j+off_x,i,colour);
-			}
-		}
-		mandelbrot(0,0,off_x, SCREEN_HEIGHT, scale, c_x, c_y );
-	}
-	
+	mandelbrot(SCREEN_WIDTH-off_x, 0,off_x, SCREEN_HEIGHT, scale, c_x, c_y );
 	Bdisp_PutDisp_DD();
-	
+}
+void draw_offset_left(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y)
+{
+    HourGlass();
+	for(unsigned int j = SCREEN_WIDTH-off_x; j>0; j--)
+	{
+		for(unsigned int i = 0; i<SCREEN_HEIGHT; i++)
+		{
+			unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
+			Bdisp_SetPointWB_VRAM(j+off_x,i,colour);
+		}
+	}
+	mandelbrot(0,0,off_x, SCREEN_HEIGHT, scale, c_x, c_y );
+	Bdisp_PutDisp_DD();
 }
 
-void draw_offset_y(int off_y, fixedpt scale, fixedpt c_x, fixedpt c_y){
-	
+void draw_offset_down(int off_y, fixedpt scale, fixedpt c_x, fixedpt c_y){
 	HourGlass();
-	if (off_y>0)
+	for(unsigned int i = off_y; i<SCREEN_HEIGHT; i++)
 	{
-		for(unsigned int i = off_y; i<SCREEN_HEIGHT; i++)
+		for(unsigned int j = 0; j<SCREEN_WIDTH; j++)
 		{
-			for(unsigned int j = 0; j<SCREEN_WIDTH; j++)
-			{
-				unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
-				Bdisp_SetPointWB_VRAM(j,i-off_y,colour);
-			}
+			unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
+			Bdisp_SetPointWB_VRAM(j,i-off_y,colour);
 		}
-		mandelbrot(0,SCREEN_HEIGHT-off_y,SCREEN_WIDTH, off_y, scale, c_x, c_y );
 	}
-	else
-	{	
-		off_y*=-1;
-		for(unsigned int i = SCREEN_HEIGHT-off_y; i>0; i--)
+	mandelbrot(0,SCREEN_HEIGHT-off_y,SCREEN_WIDTH, off_y, scale, c_x, c_y );
+	Bdisp_PutDisp_DD();
+}
+void draw_offset_up(int off_y, fixedpt scale, fixedpt c_x, fixedpt c_y)
+{
+    HourGlass();
+    for(unsigned int i = SCREEN_HEIGHT-off_y; i>0; i--)
+	{
+		for(unsigned int j = 0; j<SCREEN_WIDTH; j++)
 		{
-			for(unsigned int j = 0; j<SCREEN_WIDTH; j++)
-			{
-				unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
-				Bdisp_SetPointWB_VRAM(j,i+off_y,colour);
-			}
+			unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
+			Bdisp_SetPointWB_VRAM(j,i+off_y,colour);
 		}
-		mandelbrot(0,0,SCREEN_WIDTH, off_y, scale, c_x, c_y );
 	}
-	
+	mandelbrot(0,0,SCREEN_WIDTH, off_y, scale, c_x, c_y );
 	Bdisp_PutDisp_DD();
 }
 
@@ -172,8 +162,7 @@ void draw_scale(fixedpt scale, fixedpt c_x, fixedpt c_y)
 }
 
 int main(void){
-	//change_freq(PLL_24x);
-	int step = 1;
+	int step = 5;
     Bdisp_EnableColor(1);//Enable 16-bit mode
     
     Bdisp_AllClr_VRAM();
@@ -188,7 +177,6 @@ int main(void){
 	draw_scale(scale, c_x,c_y);
     while(running)
     {
-    	
 		GetKey(&key);
 		switch (key){
 			 case KEY_CTRL_EXE:
@@ -196,44 +184,44 @@ int main(void){
 			 	break;
 			 	
 			 case KEY_CTRL_UP:
-			 	c_y = c_y - fixedpt_mul (scale,  fixedpt_div(fixedpt_fromint(step), fixedpt_fromint(SCREEN_WIDTH)));
-			 	draw_offset_y(-step,scale, c_x, c_y);
+			 	c_y = c_y -fixedpt_div(fixedpt_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	draw_offset_up(step,scale, c_x, c_y);
 			 	break;
 			 	
 			 case KEY_CTRL_DOWN:
-			 	c_y = c_y + fixedpt_mul (scale,  fixedpt_div(fixedpt_fromint(step), fixedpt_fromint(SCREEN_WIDTH)));
-			 	draw_offset_y(step,scale, c_x, c_y);
+			 	c_y = c_y + fixedpt_div(fixedpt_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	draw_offset_down(step,scale, c_x, c_y);
 			 	break;
 			 	
 			 case KEY_CTRL_LEFT:
-			 	c_x = c_x - fixedpt_mul (scale,  fixedpt_div(fixedpt_fromint(step), fixedpt_fromint(SCREEN_WIDTH)));
-			 	draw_offset_x(-step,scale, c_x, c_y);
+			 	c_x = c_x - fixedpt_div(fixedpt_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	draw_offset_left(step,scale, c_x, c_y);
 			 	break;
 			 
 			 case KEY_CTRL_RIGHT:
-			 	c_x = c_x + fixedpt_mul (scale,  fixedpt_div(fixedpt_fromint(step), fixedpt_fromint(SCREEN_WIDTH)));
-			 	draw_offset_x(step, scale,c_x, c_y);
+			 	c_x = c_x + fixedpt_div(fixedpt_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	draw_offset_right(step, scale,c_x, c_y);
 			 	break;
 			 
 			 case KEY_CHAR_PLUS:
-				scale = fixedpt_mul (zoom, scale);
+				scale = fixedpt_mul(zoom, scale);
 				draw_scale(scale, c_x, c_y);
 				break;
 				
 			 case KEY_CHAR_MINUS:
-				scale = fixedpt_mul(scale, fixedpt_div (FIXEDPT_ONE, zoom));
+				scale = fixedpt_div(scale,zoom);
 				draw_scale(scale, c_x, c_y);
 				break;
 				
 		}
 		
     }
-    //change_freq(PLL_16x);
     return 0;
 }
 
 /*Created by Christopher "Kerm Martian" Mitchell*/
 short unsigned int heightcolor(fixedpt z, fixedpt z_min, fixedpt z_max) {
+
          fixedpt frac = fixedpt_div((z-z_min), (z_max-z_min));
          
          //color!
@@ -242,13 +230,33 @@ short unsigned int heightcolor(fixedpt z, fixedpt z_min, fixedpt z_max) {
          fixedpt b = (FIXEDPT_ONE>>2 + FIXEDPT_ONE>>1)-frac;
 
          //calculate the R/G/B values
-         r = fixedpt_abs(r); g = fixedpt_abs(g); b = fixedpt_abs(b);   //absolute value
-         r = (FIXEDPT_ONE>>2)-r; g = (fixedpt_div(FIXEDPT_ONE, fixedpt_fromint(3)))-g; b = (FIXEDPT_ONE>>2)-b;   //invert
-         r=(r>0)?(fixedpt_mul(fixedpt_fromint(6),r)):0; g =(g>0)?(fixedpt_mul(fixedpt_fromint(6),g)):0; b=(b>0)?(fixedpt_mul(fixedpt_fromint(6), b)):0;   //scale the chromatic triangles
-         r = (r>FIXEDPT_ONE)?FIXEDPT_ONE:r; g=(g>FIXEDPT_ONE)?FIXEDPT_ONE:g; b=(b>FIXEDPT_ONE)?FIXEDPT_ONE:b;   //clip the top of the chromatic triangles
-         if (frac < FIXEDPT_ONE>>2) r = fixedpt_div((r+FIXEDPT_ONE), FIXEDPT_ONE<<1);   //adjust the bottom end of the scale so that z_min is red, not black
-         if (frac > FIXEDPT_ONE>>2 + FIXEDPT_ONE>>1) b = fixedpt_div((r+FIXEDPT_ONE), FIXEDPT_ONE<<1);   //adjust the top end of the scale so that z_max is blue, not black
-         return (short unsigned int)(0x0000ffff & (((int)(fixedpt_mul(fixedpt_fromint(31),g)) << 11) | ((int)(fixedpt_mul(fixedpt_fromint(63),g)) << 5) | ((int)(fixedpt_mul(fixedpt_fromint(31),g)))));   //put the bits together
+         r = fixedpt_abs(r);
+         g = fixedpt_abs(g);
+         b = fixedpt_abs(b);   //absolute value
+         
+         r = (FIXEDPT_ONE>>2)-r;
+         g = (fixedpt_div(FIXEDPT_ONE, fixedpt_fromint(3)))-g;
+         b = (FIXEDPT_ONE>>2)-b;   //invert
+         
+         r=(r>0)?(fixedpt_mul(fixedpt_fromint(6),r)):0;
+         g =(g>0)?(fixedpt_mul(fixedpt_fromint(6),g)):0;
+         b=(b>0)?(fixedpt_mul(fixedpt_fromint(6), b)):0;   //scale the chromatic triangles
+         
+         
+         r = (r>FIXEDPT_ONE)?FIXEDPT_ONE:r;
+         g = (g>FIXEDPT_ONE)?FIXEDPT_ONE:g;
+         b = (b>FIXEDPT_ONE)?FIXEDPT_ONE:b;   //clip the top of the chromatic triangles
+         
+         
+         if (frac < FIXEDPT_ONE>>2) r = (r+FIXEDPT_ONE)>>1;   //adjust the bottom end of the scale so that z_min is red, not black
+         
+         if (frac > (FIXEDPT_ONE>>2 + FIXEDPT_ONE>>1)) b = (b+FIXEDPT_ONE)>>1;   //adjust the top end of the scale so that z_max is blue, not black
+         return (short unsigned int)(
+         0x0000ffff &(
+             (fixedpt_toint(fixedpt_mul(fixedpt_fromint(31),r))<<11)|
+             (fixedpt_toint(fixedpt_mul(fixedpt_fromint(63),g))<<5)|
+             (fixedpt_toint(fixedpt_mul(fixedpt_fromint(31),b)))
+         ));   //put the bits together
 }
 
 
