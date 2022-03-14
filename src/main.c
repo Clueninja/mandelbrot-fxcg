@@ -3,14 +3,12 @@
 #include <fxcg/misc.h>
 #include <string.h>
 #include <stdlib.h>
-<<<<<<< HEAD
 #include "fxcg_freq.h"
-=======
+
 // why float so slow
 #define FIXEDPT_BITS 32
 #define FIXEDPT_WBITS 12
 #include "fixedptc.h"
->>>>>>> fixed_point
 
 
 #define SCREEN_WIDTH 384
@@ -64,20 +62,6 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 	
 	for(unsigned int i = t_y; i <= t_y + h; i++)
 	{
-<<<<<<< HEAD
-		ci = c_y -scale*0.5+ scale * (float) i/SCREEN_WIDTH;
-		for(unsigned int j = t_x; j <= t_x + w; j++)
-		{
-			cr =c_x -scale * 0.5 + scale * (float)j/SCREEN_WIDTH ;
-			
-			if (!inCardiod(cr,ci))
-			{
-			    
-				zr=0.0;
-				zi=0.0;
-				zrsqrd=0.0;
-				zisqrd = 0.0;
-=======
 		ci =  c_y - fixedpt_mul(scale, FIXEDPT_ONE>>1) + fixedpt_div(fixedpt_mul (scale,  fixedpt_fromint(i)), fixedpt_fromint(SCREEN_WIDTH));
 		for(unsigned int j = t_x; j <= t_x + w; j++)
 		{
@@ -89,16 +73,9 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 				zi=0;
 				zrsqrd=0;
 				zisqrd = 0;
->>>>>>> fixed_point
 				
-				unsigned int iter = 0;
-				
-<<<<<<< HEAD
-				while ((iter < MAX_LOOPS) && (zrsqrd + zisqrd < 4.0))
-=======
 				unsigned short iter = 0;
 				while ((iter < MAX_LOOPS) && (zrsqrd + zisqrd < FIXEDPT_ONE<<2))
->>>>>>> fixed_point
 				{	
 					fixedpt temp =zrsqrd-zisqrd + cr;
 					
@@ -109,23 +86,14 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 					
 					iter+=1;
 				}
-<<<<<<< HEAD
-				
-				unsigned short colour = heightcolor((float)iter, 0.0f, (float) MAX_LOOPS);
-=======
 				unsigned short colour = heightcolor( (float)iter, 0.f, MAX_LOOPS );
 			
->>>>>>> fixed_point
 				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
 			else
 			{
-<<<<<<< HEAD
-				unsigned short colour = heightcolor((float) MAX_LOOPS, 0.0f, (float) MAX_LOOPS);
-=======
 				unsigned short colour = heightcolor((float)MAX_LOOPS, 0.f, MAX_LOOPS);
 			
->>>>>>> fixed_point
 				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
 		}
@@ -143,23 +111,7 @@ void draw_offset_right(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y){
 			Bdisp_SetPointWB_VRAM(j-off_x,i,colour);
 		}
 	}
-<<<<<<< HEAD
-	else 
-	{
-		off_x*=-1;
-		for(unsigned int j = SCREEN_WIDTH-off_x; j>0; j--)
-		{
-			for(unsigned int i = 0; i<SCREEN_HEIGHT; i++)
-			{
-				unsigned short colour =  Bdisp_GetPointWB_VRAM(j, i);
-				Bdisp_SetPointWB_VRAM(j+off_x,i,colour);
-			}
-		}
-		mandelbrot(0,0,off_x, SCREEN_HEIGHT, scale, c_x, c_y );
-	}
-=======
 	mandelbrot(SCREEN_WIDTH-off_x, 0,off_x, SCREEN_HEIGHT, scale, c_x, c_y );
->>>>>>> fixed_point
 	Bdisp_PutDisp_DD();
 }
 void draw_offset_left(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y)
@@ -219,56 +171,16 @@ int main(void){
     
     int key;
 	int running = 1;
-<<<<<<< HEAD
-	float c_x = -1.0;
-	float c_y = 1.0;
-	float scale = 4.0;
-	float zoom = 0.5f;
 	
-=======
 	fixedpt c_x = 0;
 	fixedpt c_y = 0;
 	fixedpt scale = FIXEDPT_ONE<<2;
 	fixedpt zoom = FIXEDPT_ONE>>1;
->>>>>>> fixed_point
 	draw_scale(scale, c_x,c_y);
     while(running)
     {
 		GetKey(&key);
 		switch (key){
-<<<<<<< HEAD
-			case KEY_CTRL_EXE:
-				running = 0;
-				break;
-				
-			case KEY_CTRL_UP:
-		    	c_y = c_y - scale * ((float)step/SCREEN_WIDTH);
-				draw_offset_y(-step,scale, c_x, c_y);
-				break;
-				
-			case KEY_CTRL_DOWN:
-				c_y = c_y + scale * ((float)step/SCREEN_WIDTH);
-				draw_offset_y(step,scale, c_x, c_y);
-				break;
-				
-			case KEY_CTRL_LEFT:
-				c_x = c_x - scale * ((float)step/SCREEN_WIDTH);
-				draw_offset_x(-step,scale, c_x, c_y);
-				break;
-			
-			case KEY_CTRL_RIGHT:
-				c_x = c_x + scale * ((float)step/SCREEN_WIDTH);
-				draw_offset_x(step, scale,c_x, c_y);
-				break;
-			
-			case KEY_CHAR_PLUS:
-				scale*=zoom;
-				draw_scale(scale, c_x, c_y);
-				break;
-				
-			case KEY_CHAR_MINUS:
-				scale*=1.0/zoom;
-=======
 			 case KEY_CTRL_EXE:
 			 	running = 0;
 			 	break;
@@ -300,7 +212,6 @@ int main(void){
 				
 			 case KEY_CHAR_MINUS:
 				scale = fixedpt_div(scale,zoom);
->>>>>>> fixed_point
 				draw_scale(scale, c_x, c_y);
 				break;
 		}
