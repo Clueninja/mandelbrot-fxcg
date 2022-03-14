@@ -3,6 +3,7 @@
 #include <fxcg/misc.h>
 #include <string.h>
 #include <stdlib.h>
+
 // why float so slow
 #define FIXEDPT_FBITS 40
 #include "fixed.h"
@@ -60,10 +61,10 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 	
 	for(unsigned int i = t_y; i <= t_y + h; i++)
 	{
-		ci =  c_y - fix_mul(scale, FIX_ONE>>1) + fix_div(fix_mul (scale,  fixedpt_fromint(i)), fixedpt_fromint(SCREEN_WIDTH));
+		ci =  c_y - fix_mul(scale, FIX_ONE>>1) + fix_div(fix_mul (scale,  fix_fromint(i)), fix_fromint(SCREEN_WIDTH));
 		for(unsigned int j = t_x; j <= t_x + w; j++)
 		{
-			cr =  c_x - fix_mul(scale, FIX_ONE>>1) + fix_div(fix_mul (scale,  fixedpt_fromint(j)), fixedpt_fromint(SCREEN_WIDTH));
+			cr =  c_x - fix_mul(scale, FIX_ONE>>1) + fix_div(fix_mul (scale,  fix_fromint(j)), fix_fromint(SCREEN_WIDTH));
 			
 			if (!inCardiod(cr,ci))
 			{
@@ -186,22 +187,22 @@ int main(void){
 			 	break;
 			 	
 			 case KEY_CTRL_UP:
-			 	c_y = c_y -fix_div(fix_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	c_y = c_y -fix_div(fix_mul(scale, fix_fromint(step)), fix_fromint(SCREEN_WIDTH));
 			 	draw_offset_up(step,scale, c_x, c_y);
 			 	break;
 			 	
 			 case KEY_CTRL_DOWN:
-			 	c_y = c_y + fix_div(fix_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	c_y = c_y + fix_div(fix_mul(scale, fix_fromint(step)), fix_fromint(SCREEN_WIDTH));
 			 	draw_offset_down(step,scale, c_x, c_y);
 			 	break;
 			 	
 			 case KEY_CTRL_LEFT:
-			 	c_x = c_x - fix_div(fix_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	c_x = c_x - fix_div(fix_mul(scale, fix_fromint(step)), fix_fromint(SCREEN_WIDTH));
 			 	draw_offset_left(step,scale, c_x, c_y);
 			 	break;
 			 
 			 case KEY_CTRL_RIGHT:
-			 	c_x = c_x + fix_div(fix_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	c_x = c_x + fix_div(fix_mul(scale, fix_fromint(step)), fix_fromint(SCREEN_WIDTH));
 			 	draw_offset_right(step, scale,c_x, c_y);
 			 	break;
 			 
@@ -220,7 +221,7 @@ int main(void){
     }
     return 0;
 }
-
+// very slow
 /*Created by Christopher "Kerm Martian" Mitchell*/
 short unsigned int heightcolor(float z, float z_min, float z_max) {
          float frac = ((z-z_min)/(z_max-z_min));
