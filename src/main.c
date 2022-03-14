@@ -11,7 +11,7 @@
 
 #define SCREEN_WIDTH 384
 #define SCREEN_HEIGHT 192
-#define MAX_LOOPS 30
+#define MAX_LOOPS 100
 
 
 short unsigned int heightcolor(float z, float z_min, float z_max);
