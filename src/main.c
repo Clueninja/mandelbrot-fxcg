@@ -3,12 +3,14 @@
 #include <fxcg/misc.h>
 #include <string.h>
 #include <stdlib.h>
+<<<<<<< HEAD
 #include "fxcg_freq.h"
+=======
+>>>>>>> heightcolor_fix
 
 // why float so slow
-#define FIXEDPT_BITS 32
-#define FIXEDPT_WBITS 12
-#include "fixedptc.h"
+#define FIX_FBITS 40
+#include "fixed.h"
 
 
 #define SCREEN_WIDTH 384
@@ -16,56 +18,52 @@
 #define MAX_LOOPS 100
 
 
-short unsigned int heightcolor(float z, float z_min, float z_max);
+short unsigned int heightcolor(fix z, fix z_min, fix z_max);
 
 unsigned short Bdisp_GetPointWB_VRAM(int x, int y)
 {
 	return Bdisp_GetPoint_VRAM(x, y+24);
 }
 // Optimisation check if it is in main cardiods 
-unsigned int inCardiod(const fixedpt r, const fixedpt i)
+unsigned int inCardiod(const fix r, const fix i)
 {
-	fixedpt x =  r - (FIXEDPT_ONE>>2);
-	fixedpt y = i;
+	fix x =  r - (FIX_ONE>>2);
+	fix y = i;
 	
-	if (
-	    fixedpt_mul( //TODO: Optimise
-	        fixedpt_mul(x, x) + fixedpt_mul(y, y) + fixedpt_mul(FIXEDPT_ONE>>1, x),
-	        fixedpt_mul(x, x) + fixedpt_mul(y, y) + fixedpt_mul(FIXEDPT_ONE>>1, x)
-	    ) - fixedpt_mul(FIXEDPT_ONE>>2,  fixedpt_mul(x, x) + fixedpt_mul(y, y))<0)
+	if (fix_sq( fix_sq(x) + fix_sq(y) + (x>>1)) - ((fix_sq(x) + fix_sq(y))>>2)<0)
 		return 1;
 	
-	x = r+FIXEDPT_ONE;
-	if (fixedpt_mul(x, x) + fixedpt_mul(y, y) < FIXEDPT_ONE>>4)
+	x = r+FIX_ONE;
+	if (fix_sq(x) + fix_sq(y) < FIX_ONE>>4)
 		return 1;
 	    // 1.3125
-	x = r+ 0x00015000 ;
-	if (fixedpt_mul(x, x) + fixedpt_mul(y, y) < FIXEDPT_ONE>>8)
+	x = r+ FIX_ONE + (FIX_ONE>>2) + (FIX_ONE>>4);
+	if (fix_sq(x) + fix_sq(y) < FIX_ONE>>8)
 		return 1;
 	return 0;
 }
 
 // draws into VRAM rectangle of mandelbrot corner t_x, t_y ...
 // scale zooms into c_x, c_y
-void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int h, fixedpt scale, fixedpt c_x, fixedpt c_y)
+void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int h, fix scale, fix c_x, fix c_y)
 {
 	HourGlass();
 	
-	register fixedpt ci;
-	register fixedpt cr;
+	register fix ci;
+	register fix cr;
 	
-	register fixedpt zr;
-	register fixedpt zi;
+	register fix zr;
+	register fix zi;
 	
-	register fixedpt zrsqrd;
-	register fixedpt zisqrd;
+	register fix zrsqrd;
+	register fix zisqrd;
 	
 	for(unsigned int i = t_y; i <= t_y + h; i++)
 	{
-		ci =  c_y - fixedpt_mul(scale, FIXEDPT_ONE>>1) + fixedpt_div(fixedpt_mul (scale,  fixedpt_fromint(i)), fixedpt_fromint(SCREEN_WIDTH));
+		ci =  c_y - (scale>>1) + fix_div(fix_mul (scale,  fix_fromint(i)), fix_fromint(SCREEN_WIDTH));
 		for(unsigned int j = t_x; j <= t_x + w; j++)
 		{
-			cr =  c_x - fixedpt_mul(scale, FIXEDPT_ONE>>1) + fixedpt_div(fixedpt_mul (scale,  fixedpt_fromint(j)), fixedpt_fromint(SCREEN_WIDTH));
+			cr =  c_x - (scale>>1) + fix_div(fix_mul (scale,  fix_fromint(j)), fix_fromint(SCREEN_WIDTH));
 			
 			if (!inCardiod(cr,ci))
 			{
@@ -75,25 +73,23 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 				zisqrd = 0;
 				
 				unsigned short iter = 0;
-				while ((iter < MAX_LOOPS) && (zrsqrd + zisqrd < FIXEDPT_ONE<<2))
+				while ((iter < MAX_LOOPS) && (zrsqrd + zisqrd < FIX_ONE<<2))
 				{	
-					fixedpt temp =zrsqrd-zisqrd + cr;
+					fix temp =zrsqrd-zisqrd + cr;
 					
-					zi = fixedpt_mul(fixedpt_mul(FIXEDPT_ONE<<1, zr),  zi) + ci;
+					zi = fix_mul(zr<<1, zi) + ci;
 					zr = temp;
-					zrsqrd = fixedpt_mul(zr, zr);
-					zisqrd = fixedpt_mul(zi, zi);
+					zrsqrd = fix_sq(zr);
+					zisqrd = fix_sq(zi);
 					
 					iter+=1;
 				}
-				unsigned short colour = heightcolor( (float)iter, 0.f, MAX_LOOPS );
-			
+				unsigned short colour = heightcolor( fix_fromint(iter), 0, fix_fromint(MAX_LOOPS) );
 				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
 			else
 			{
-				unsigned short colour = heightcolor((float)MAX_LOOPS, 0.f, MAX_LOOPS);
-			
+				unsigned short colour = heightcolor(fix_fromint(MAX_LOOPS), 0, fix_fromint(MAX_LOOPS));
 				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
 		}
@@ -101,7 +97,7 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 }
 
 // off_x number of pixels to see to the right
-void draw_offset_right(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y){
+void draw_offset_right(int off_x, fix scale, fix c_x, fix c_y){
 	HourGlass();
 	for(unsigned int j = off_x; j<SCREEN_WIDTH; j++)
 	{
@@ -114,7 +110,7 @@ void draw_offset_right(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y){
 	mandelbrot(SCREEN_WIDTH-off_x, 0,off_x, SCREEN_HEIGHT, scale, c_x, c_y );
 	Bdisp_PutDisp_DD();
 }
-void draw_offset_left(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y)
+void draw_offset_left(int off_x, fix scale, fix c_x, fix c_y)
 {
     HourGlass();
 	for(unsigned int j = SCREEN_WIDTH-off_x; j>0; j--)
@@ -129,7 +125,7 @@ void draw_offset_left(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y)
 	Bdisp_PutDisp_DD();
 }
 
-void draw_offset_down(int off_y, fixedpt scale, fixedpt c_x, fixedpt c_y){
+void draw_offset_down(int off_y, fix scale, fix c_x, fix c_y){
 	HourGlass();
 	for(unsigned int i = off_y; i<SCREEN_HEIGHT; i++)
 	{
@@ -142,7 +138,8 @@ void draw_offset_down(int off_y, fixedpt scale, fixedpt c_x, fixedpt c_y){
 	mandelbrot(0,SCREEN_HEIGHT-off_y,SCREEN_WIDTH, off_y, scale, c_x, c_y );
 	Bdisp_PutDisp_DD();
 }
-void draw_offset_up(int off_y, fixedpt scale, fixedpt c_x, fixedpt c_y)
+
+void draw_offset_up(int off_y, fix scale, fix c_x, fix c_y)
 {
     HourGlass();
     for(unsigned int i = SCREEN_HEIGHT-off_y; i>0; i--)
@@ -157,25 +154,32 @@ void draw_offset_up(int off_y, fixedpt scale, fixedpt c_x, fixedpt c_y)
 	Bdisp_PutDisp_DD();
 }
 
-void draw_scale(fixedpt scale, fixedpt c_x, fixedpt c_y)
+void draw_scale(fix scale, fix c_x, fix c_y)
 {
 	mandelbrot(0,0,SCREEN_WIDTH, SCREEN_HEIGHT, scale, c_x, c_y);
 	Bdisp_PutDisp_DD();
-	
 }
 
 int main(void){
 	int step = 5;
+	
     Bdisp_EnableColor(1);//Enable 16-bit mode
     Bdisp_AllClr_VRAM();
     
     int key;
 	int running = 1;
+<<<<<<< HEAD
 	
 	fixedpt c_x = 0;
 	fixedpt c_y = 0;
 	fixedpt scale = FIXEDPT_ONE<<2;
 	fixedpt zoom = FIXEDPT_ONE>>1;
+=======
+	fix c_x = 0;
+	fix c_y = 0;
+	fix scale = FIX_ONE<<2;
+	fix zoom = FIX_ONE>>1;
+>>>>>>> heightcolor_fix
 	draw_scale(scale, c_x,c_y);
     while(running)
     {
@@ -186,32 +190,32 @@ int main(void){
 			 	break;
 			 	
 			 case KEY_CTRL_UP:
-			 	c_y = c_y -fixedpt_div(fixedpt_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	c_y = c_y - fix_div(fix_mul(scale, fix_fromint(step)), fix_fromint(SCREEN_WIDTH));
 			 	draw_offset_up(step,scale, c_x, c_y);
 			 	break;
 			 	
 			 case KEY_CTRL_DOWN:
-			 	c_y = c_y + fixedpt_div(fixedpt_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	c_y = c_y + fix_div(fix_mul(scale, fix_fromint(step)), fix_fromint(SCREEN_WIDTH));
 			 	draw_offset_down(step,scale, c_x, c_y);
 			 	break;
 			 	
 			 case KEY_CTRL_LEFT:
-			 	c_x = c_x - fixedpt_div(fixedpt_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	c_x = c_x - fix_div(fix_mul(scale, fix_fromint(step)), fix_fromint(SCREEN_WIDTH));
 			 	draw_offset_left(step,scale, c_x, c_y);
 			 	break;
 			 
 			 case KEY_CTRL_RIGHT:
-			 	c_x = c_x + fixedpt_div(fixedpt_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	c_x = c_x + fix_div(fix_mul(scale, fix_fromint(step)), fix_fromint(SCREEN_WIDTH));
 			 	draw_offset_right(step, scale,c_x, c_y);
 			 	break;
 			 
 			 case KEY_CHAR_PLUS:
-				scale = fixedpt_mul(zoom, scale);
+				scale = fix_mul(zoom, scale);
 				draw_scale(scale, c_x, c_y);
 				break;
 				
 			 case KEY_CHAR_MINUS:
-				scale = fixedpt_div(scale,zoom);
+				scale = fix_div(scale,zoom);
 				draw_scale(scale, c_x, c_y);
 				break;
 		}
@@ -219,23 +223,50 @@ int main(void){
     return 0;
 }
 
+
 /*Created by Christopher "Kerm Martian" Mitchell*/
-short unsigned int heightcolor(float z, float z_min, float z_max) {
-         float frac = ((z-z_min)/(z_max-z_min));
+short unsigned int heightcolor(fix z, fix z_min, fix z_max) {
+         fix frac = fix_div((z-z_min),(z_max-z_min));
          
          //color!
-         float r = (0.25f)-frac;
-         float g = (0.5f)-frac;
-         float b = (0.75f)-frac;
-
          //calculate the R/G/B values
-         r = (r>0.f)?r:-r; g = (g>0.f)?g:-g; b = (b>0.f)?b:-b;   //absolute value
-         r = (0.25f)-r; g = (1.f/3.f)-g; b = (0.25f)-b;   //invert
-         r = (r>0.f)?(6.f*r):0.f; g = (g>0.f)?(6.f*g):0.f; b = (b>0.f)?(6.f*b):0.f;   //scale the chromatic triangles
-         r = (r>1.f)?1.f:r; g = (g>1.f)?1.f:g; b = (b>1.f)?1.f:b;   //clip the top of the chromatic triangles
-         if (frac < 0.25f) r = (r+1.f)/2.f;   //adjust the bottom end of the scale so that z_min is red, not black
-         if (frac > 0.75f) b = (b+1.f)/2.f;   //adjust the top end of the scale so that z_max is blue, not black
-         return (short unsigned int)(0x0000ffff & (((int)(31.f*r) << 11) | ((int)(63.f*g) << 5) | ((int)(31.f*b))));   //put the bits together
+         fix r = (FIX_ONE>>2)-frac;
+         fix g = (FIX_ONE>>1)-frac;
+         fix b = ((FIX_ONE>>1) + (FIX_ONE>>2))-frac;
+
+         
+         //absolute value
+         r = (r>0)?r:-r;
+         g = (g>0)?g:-g;
+         b = (b>0)?b:-b;   
+         
+         //invert
+         r = (FIX_ONE>>2)-r;
+         g = (fix_div(FIX_ONE, fix_fromint(3)))-g;
+         b = (FIX_ONE>>2)-b;   
+         
+         //scale the chromatic triangles
+         r = (r>0)?(fix_mul(fix_fromint(6), r)):0;
+         g = (g>0)?(fix_mul(fix_fromint(6), r)):0;
+         b = (b>0)?(fix_mul(fix_fromint(6), r)):0;   
+         
+         //clip the top of the chromatic triangles
+         r = (r>FIX_ONE)?FIX_ONE:r;
+         g = (g>FIX_ONE)?FIX_ONE:g;
+         b = (b>FIX_ONE)?FIX_ONE:b;   
+         
+         //adjust the bottom end of the scale so that z_min is red, not black
+         if (frac < FIX_ONE>>2) r = (r+FIX_ONE)>>1;
+         
+         //adjust the top end of the scale so that z_max is blue, not black
+         if (frac > (FIX_ONE>>2) + (FIX_ONE>>1)) b = (b+FIX_ONE)>>1;
+         
+         //put the bits together
+         return (short unsigned int)(0x0000ffff & (
+            fix_toint(fix_mul(fix_fromint(31), r))<<11 |
+            fix_toint(fix_mul(fix_fromint(63), g))<<5 |
+            fix_toint(fix_mul(fix_fromint(31), b))
+            ));   
 }
 
 
