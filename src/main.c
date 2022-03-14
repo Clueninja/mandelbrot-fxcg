@@ -224,7 +224,6 @@ short unsigned int heightcolor(fix z, fix z_min, fix z_max) {
          fix r = (FIX_ONE>>2)-frac;
          fix g = (FIX_ONE>>1)-frac;
          fix b = ((FIX_ONE>>1) + (FIX_ONE>>2))-frac;
-
          
          //absolute value
          r = (r>0)?r:-r;
@@ -255,7 +254,7 @@ short unsigned int heightcolor(fix z, fix z_min, fix z_max) {
          //put the bits together
          return (short unsigned int)(0x0000ffff & (
             fix_toint(fix_mul(fix_fromint(31), r))<<11 |
-            fix_toint(fix_mul(fix_fromint(63), g))<<5 |
+            fix_toint(fix_mul(fix_fromint(31), g))<<5 |
             fix_toint(fix_mul(fix_fromint(31), b))
             ));   
 }
