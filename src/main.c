@@ -3,8 +3,9 @@
 #include <fxcg/misc.h>
 #include <string.h>
 #include <stdlib.h>
-
+// why float so slow
 #define FIXEDPT_BITS 32
+#define FIXEDPT_WBITS 12
 #include "fixedptc.h"
 
 
@@ -13,7 +14,7 @@
 #define MAX_LOOPS 30
 
 
-short unsigned int heightcolor(fixedpt z, fixedpt z_min, fixedpt z_max);
+short unsigned int heightcolor(float z, float z_min, float z_max);
 
 unsigned short Bdisp_GetPointWB_VRAM(int x, int y)
 {
@@ -85,13 +86,13 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 					
 					iter+=1;
 				}
-				unsigned short colour = heightcolor(fixedpt_fromint(iter), 0, fixedpt_fromint(MAX_LOOPS));
+				unsigned short colour = heightcolor( (float)iter, 0.f, MAX_LOOPS );
 			
 				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
 			else
 			{
-				unsigned short colour = heightcolor(fixedpt_fromint(MAX_LOOPS), 0, fixedpt_fromint(MAX_LOOPS));
+				unsigned short colour = heightcolor((float)MAX_LOOPS, 0.f, MAX_LOOPS);
 			
 				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
@@ -222,43 +223,22 @@ int main(void){
 }
 
 /*Created by Christopher "Kerm Martian" Mitchell*/
-short unsigned int heightcolor(fixedpt z, fixedpt z_min, fixedpt z_max) {
-
-         fixedpt frac = fixedpt_div((z-z_min), (z_max-z_min));
+short unsigned int heightcolor(float z, float z_min, float z_max) {
+         float frac = ((z-z_min)/(z_max-z_min));
          
          //color!
-         fixedpt r = (FIXEDPT_ONE>>2)-frac;
-         fixedpt g = (FIXEDPT_ONE>>1)-frac;
-         fixedpt b = ((FIXEDPT_ONE>>2) + (FIXEDPT_ONE>>1))-frac;
+         float r = (0.25f)-frac;
+         float g = (0.5f)-frac;
+         float b = (0.75f)-frac;
 
          //calculate the R/G/B values
-         r = fixedpt_abs(r);
-         g = fixedpt_abs(g);
-         b = fixedpt_abs(b);   //absolute value
-         
-         r = (FIXEDPT_ONE>>2)-r;
-         g = (fixedpt_div(FIXEDPT_ONE, fixedpt_fromint(3)))-g;
-         b = (FIXEDPT_ONE>>2)-b;   //invert
-         
-         r=(r>0)?(fixedpt_mul(fixedpt_fromint(6),r)):0;
-         g =(g>0)?(fixedpt_mul(fixedpt_fromint(6),g)):0;
-         b=(b>0)?(fixedpt_mul(fixedpt_fromint(6), b)):0;   //scale the chromatic triangles
-         
-         
-         r = (r>FIXEDPT_ONE)?FIXEDPT_ONE:r;
-         g = (g>FIXEDPT_ONE)?FIXEDPT_ONE:g;
-         b = (b>FIXEDPT_ONE)?FIXEDPT_ONE:b;   //clip the top of the chromatic triangles
-         
-         
-         if (frac < (FIXEDPT_ONE>>2)) r = (r+FIXEDPT_ONE)>>1;   //adjust the bottom end of the scale so that z_min is red, not black
-         
-         if (frac > ((FIXEDPT_ONE>>2) + (FIXEDPT_ONE>>1))) b = (b+FIXEDPT_ONE)>>1;   //adjust the top end of the scale so that z_max is blue, not black
-         return (short unsigned int)(
-         0x0000ffff &(
-             (fixedpt_toint(fixedpt_mul(fixedpt_fromint(31),r))<<11)|
-             (fixedpt_toint(fixedpt_mul(fixedpt_fromint(63),g))<<5)|
-             (fixedpt_toint(fixedpt_mul(fixedpt_fromint(31),b)))
-         ));   //put the bits together
+         r = (r>0.f)?r:-r; g = (g>0.f)?g:-g; b = (b>0.f)?b:-b;   //absolute value
+         r = (0.25f)-r; g = (1.f/3.f)-g; b = (0.25f)-b;   //invert
+         r = (r>0.f)?(6.f*r):0.f; g = (g>0.f)?(6.f*g):0.f; b = (b>0.f)?(6.f*b):0.f;   //scale the chromatic triangles
+         r = (r>1.f)?1.f:r; g = (g>1.f)?1.f:g; b = (b>1.f)?1.f:b;   //clip the top of the chromatic triangles
+         if (frac < 0.25f) r = (r+1.f)/2.f;   //adjust the bottom end of the scale so that z_min is red, not black
+         if (frac > 0.75f) b = (b+1.f)/2.f;   //adjust the top end of the scale so that z_max is blue, not black
+         return (short unsigned int)(0x0000ffff & (((int)(31.f*r) << 11) | ((int)(63.f*g) << 5) | ((int)(31.f*b))));   //put the bits together
 }
 
 
