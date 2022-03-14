@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 // why float so slow
-#define FIXEDPT_FBITS 40
+#define FIX_FBITS 40
 #include "fixed.h"
 
 
@@ -26,19 +26,15 @@ unsigned int inCardiod(const fix r, const fix i)
 	fix x =  r - (FIX_ONE>>2);
 	fix y = i;
 	
-	if (
-	    fix_mul( //TODO: Optimise
-	        fix_mul(x, x) + fix_mul(y, y) + (x>>1),
-	        fix_mul(x, x) + fix_mul(y, y) + (x>>1)
-	    ) - ((fix_mul(x, x) + fix_mul(y, y))>>2)<0)
+	if (fix_sq( fix_sq(x) + fix_sq(y) + (x>>1)) - ((fix_sq(x) + fix_sq(y))>>2)<0)
 		return 1;
 	
 	x = r+FIX_ONE;
-	if (fix_mul(x, x) + fix_mul(y, y) < FIX_ONE>>4)
+	if (fix_sq(x) + fix_sq(y) < FIX_ONE>>4)
 		return 1;
 	    // 1.3125
-	x = r+ FIX_ONE + FIX_ONE>>2 + FIX_ONE>>4 ;
-	if (fix_mul(x, x) + fix_mul(y, y) < FIX_ONE>>8)
+	x = r+ FIX_ONE + (FIX_ONE>>2) + (FIX_ONE>>4);
+	if (fix_sq(x) + fix_sq(y) < FIX_ONE>>8)
 		return 1;
 	return 0;
 }
@@ -73,27 +69,24 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 				zrsqrd=0;
 				zisqrd = 0;
 				
-				
 				unsigned short iter = 0;
 				while ((iter < MAX_LOOPS) && (zrsqrd + zisqrd < FIX_ONE<<2))
 				{	
 					fix temp =zrsqrd-zisqrd + cr;
 					
-					zi = fix_mul(zr<<1,  zi) + ci;
+					zi = fix_mul(zr<<1, zi) + ci;
 					zr = temp;
-					zrsqrd = fix_mul(zr, zr);
-					zisqrd = fix_mul(zi, zi);
+					zrsqrd = fix_sq(zr);
+					zisqrd = fix_sq(zi);
 					
 					iter+=1;
 				}
 				unsigned short colour = heightcolor( fix_fromint(iter), 0, fix_fromint(MAX_LOOPS) );
-			
 				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
 			else
 			{
 				unsigned short colour = heightcolor(fix_fromint(MAX_LOOPS), 0, fix_fromint(MAX_LOOPS));
-			
 				Bdisp_SetPointWB_VRAM(j,i,colour);
 			}
 		}
@@ -142,6 +135,7 @@ void draw_offset_down(int off_y, fix scale, fix c_x, fix c_y){
 	mandelbrot(0,SCREEN_HEIGHT-off_y,SCREEN_WIDTH, off_y, scale, c_x, c_y );
 	Bdisp_PutDisp_DD();
 }
+
 void draw_offset_up(int off_y, fix scale, fix c_x, fix c_y)
 {
     HourGlass();
@@ -161,13 +155,12 @@ void draw_scale(fix scale, fix c_x, fix c_y)
 {
 	mandelbrot(0,0,SCREEN_WIDTH, SCREEN_HEIGHT, scale, c_x, c_y);
 	Bdisp_PutDisp_DD();
-	
 }
 
 int main(void){
 	int step = 5;
+	
     Bdisp_EnableColor(1);//Enable 16-bit mode
-    
     Bdisp_AllClr_VRAM();
     
     int key;
@@ -187,7 +180,7 @@ int main(void){
 			 	break;
 			 	
 			 case KEY_CTRL_UP:
-			 	c_y = c_y -fix_div(fix_mul(scale, fix_fromint(step)), fix_fromint(SCREEN_WIDTH));
+			 	c_y = c_y - fix_div(fix_mul(scale, fix_fromint(step)), fix_fromint(SCREEN_WIDTH));
 			 	draw_offset_up(step,scale, c_x, c_y);
 			 	break;
 			 	
@@ -226,37 +219,44 @@ short unsigned int heightcolor(fix z, fix z_min, fix z_max) {
          fix frac = fix_div((z-z_min),(z_max-z_min));
          
          //color!
+         //calculate the R/G/B values
          fix r = (FIX_ONE>>2)-frac;
          fix g = (FIX_ONE>>1)-frac;
          fix b = ((FIX_ONE>>1) + (FIX_ONE>>2))-frac;
 
-         //calculate the R/G/B values
+         
+         //absolute value
          r = (r>0)?r:-r;
          g = (g>0)?g:-g;
-         b = (b>0)?b:-b;   //absolute value
+         b = (b>0)?b:-b;   
          
-         
+         //invert
          r = (FIX_ONE>>2)-r;
          g = (fix_div(FIX_ONE, fix_fromint(3)))-g;
-         b = (FIX_ONE>>2)-b;   //invert
+         b = (FIX_ONE>>2)-b;   
          
-         
+         //scale the chromatic triangles
          r = (r>0)?(fix_mul(fix_fromint(6), r)):0;
          g = (g>0)?(fix_mul(fix_fromint(6), r)):0;
-         b = (b>0)?(fix_mul(fix_fromint(6), r)):0;   //scale the chromatic triangles
+         b = (b>0)?(fix_mul(fix_fromint(6), r)):0;   
          
-         
+         //clip the top of the chromatic triangles
          r = (r>FIX_ONE)?FIX_ONE:r;
          g = (g>FIX_ONE)?FIX_ONE:g;
-         b = (b>FIX_ONE)?FIX_ONE:b;   //clip the top of the chromatic triangles
+         b = (b>FIX_ONE)?FIX_ONE:b;   
          
-         if (frac < FIX_ONE>>2) r = (r+FIX_ONE)>>1;   //adjust the bottom end of the scale so that z_min is red, not black
-         if (frac > (FIX_ONE>>2) + (FIX_ONE>>1)) b = (b+FIX_ONE)>>1;   //adjust the top end of the scale so that z_max is blue, not black
+         //adjust the bottom end of the scale so that z_min is red, not black
+         if (frac < FIX_ONE>>2) r = (r+FIX_ONE)>>1;
+         
+         //adjust the top end of the scale so that z_max is blue, not black
+         if (frac > (FIX_ONE>>2) + (FIX_ONE>>1)) b = (b+FIX_ONE)>>1;
+         
+         //put the bits together
          return (short unsigned int)(0x0000ffff & (
             fix_toint(fix_mul(fix_fromint(31), r))<<11 |
             fix_toint(fix_mul(fix_fromint(63), g))<<5 |
             fix_toint(fix_mul(fix_fromint(31), b))
-            ));   //put the bits together
+            ));   
 }
 
 
