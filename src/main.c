@@ -3,10 +3,6 @@
 #include <fxcg/misc.h>
 #include <string.h>
 #include <stdlib.h>
-<<<<<<< HEAD
-#include "fxcg_freq.h"
-=======
->>>>>>> heightcolor_fix
 
 // why float so slow
 #define FIX_FBITS 40
@@ -168,18 +164,13 @@ int main(void){
     
     int key;
 	int running = 1;
-<<<<<<< HEAD
 	
-	fixedpt c_x = 0;
-	fixedpt c_y = 0;
-	fixedpt scale = FIXEDPT_ONE<<2;
-	fixedpt zoom = FIXEDPT_ONE>>1;
-=======
 	fix c_x = 0;
 	fix c_y = 0;
+	
 	fix scale = FIX_ONE<<2;
 	fix zoom = FIX_ONE>>1;
->>>>>>> heightcolor_fix
+	
 	draw_scale(scale, c_x,c_y);
     while(running)
     {
