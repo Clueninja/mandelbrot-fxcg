@@ -3,6 +3,8 @@
 #include <fxcg/misc.h>
 #include <string.h>
 #include <stdlib.h>
+
+#define FIXEDPT_BITS 32
 #include "fixedptc.h"
 
 
@@ -227,7 +229,7 @@ short unsigned int heightcolor(fixedpt z, fixedpt z_min, fixedpt z_max) {
          //color!
          fixedpt r = (FIXEDPT_ONE>>2)-frac;
          fixedpt g = (FIXEDPT_ONE>>1)-frac;
-         fixedpt b = (FIXEDPT_ONE>>2 + FIXEDPT_ONE>>1)-frac;
+         fixedpt b = ((FIXEDPT_ONE>>2) + (FIXEDPT_ONE>>1))-frac;
 
          //calculate the R/G/B values
          r = fixedpt_abs(r);
@@ -248,9 +250,9 @@ short unsigned int heightcolor(fixedpt z, fixedpt z_min, fixedpt z_max) {
          b = (b>FIXEDPT_ONE)?FIXEDPT_ONE:b;   //clip the top of the chromatic triangles
          
          
-         if (frac < FIXEDPT_ONE>>2) r = (r+FIXEDPT_ONE)>>1;   //adjust the bottom end of the scale so that z_min is red, not black
+         if (frac < (FIXEDPT_ONE>>2)) r = (r+FIXEDPT_ONE)>>1;   //adjust the bottom end of the scale so that z_min is red, not black
          
-         if (frac > (FIXEDPT_ONE>>2 + FIXEDPT_ONE>>1)) b = (b+FIXEDPT_ONE)>>1;   //adjust the top end of the scale so that z_max is blue, not black
+         if (frac > ((FIXEDPT_ONE>>2) + (FIXEDPT_ONE>>1))) b = (b+FIXEDPT_ONE)>>1;   //adjust the top end of the scale so that z_max is blue, not black
          return (short unsigned int)(
          0x0000ffff &(
              (fixedpt_toint(fixedpt_mul(fixedpt_fromint(31),r))<<11)|
