@@ -4,9 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 // why float so slow
-#define FIXEDPT_BITS 32
-#define FIXEDPT_WBITS 12
-#include "fixedptc.h"
+#define FIXEDPT_FBITS 40
+#include "fixed.h"
 
 
 #define SCREEN_WIDTH 384
@@ -21,50 +20,50 @@ unsigned short Bdisp_GetPointWB_VRAM(int x, int y)
 	return Bdisp_GetPoint_VRAM(x, y+24);
 }
 // Optimisation check if it is in main cardiods 
-unsigned int inCardiod(const fixedpt r, const fixedpt i)
+unsigned int inCardiod(const fix r, const fix i)
 {
-	fixedpt x =  r - (FIXEDPT_ONE>>2);
-	fixedpt y = i;
+	fix x =  r - (FIX_ONE>>2);
+	fix y = i;
 	
 	if (
-	    fixedpt_mul( //TODO: Optimise
-	        fixedpt_mul(x, x) + fixedpt_mul(y, y) + fixedpt_mul(FIXEDPT_ONE>>1, x),
-	        fixedpt_mul(x, x) + fixedpt_mul(y, y) + fixedpt_mul(FIXEDPT_ONE>>1, x)
-	    ) - fixedpt_mul(FIXEDPT_ONE>>2,  fixedpt_mul(x, x) + fixedpt_mul(y, y))<0)
+	    fix_mul( //TODO: Optimise
+	        fix_mul(x, x) + fix_mul(y, y) + fix_mul(FIX_ONE>>1, x),
+	        fix_mul(x, x) + fix_mul(y, y) + fix_mul(FIX_ONE>>1, x)
+	    ) - fix_mul(FIX_ONE>>2,  fix_mul(x, x) + fix_mul(y, y))<0)
 		return 1;
 	
-	x = r+FIXEDPT_ONE;
-	if (fixedpt_mul(x, x) + fixedpt_mul(y, y) < FIXEDPT_ONE>>4)
+	x = r+FIX_ONE;
+	if (fix_mul(x, x) + fix_mul(y, y) < FIX_ONE>>4)
 		return 1;
 	    // 1.3125
 	x = r+ 0x00015000 ;
-	if (fixedpt_mul(x, x) + fixedpt_mul(y, y) < FIXEDPT_ONE>>8)
+	if (fix_mul(x, x) + fix_mul(y, y) < FIX_ONE>>8)
 		return 1;
 	return 0;
 }
 
 // draws into VRAM rectangle of mandelbrot corner t_x, t_y ...
 // scale zooms into c_x, c_y
-void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int h, fixedpt scale, fixedpt c_x, fixedpt c_y)
+void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int h, fix scale, fix c_x, fix c_y)
 {
 	
 	HourGlass();
 	
-	register fixedpt ci;
-	register fixedpt cr;
+	register fix ci;
+	register fix cr;
 	
-	register fixedpt zr;
-	register fixedpt zi;
+	register fix zr;
+	register fix zi;
 	
-	register fixedpt zrsqrd;
-	register fixedpt zisqrd;
+	register fix zrsqrd;
+	register fix zisqrd;
 	
 	for(unsigned int i = t_y; i <= t_y + h; i++)
 	{
-		ci =  c_y - fixedpt_mul(scale, FIXEDPT_ONE>>1) + fixedpt_div(fixedpt_mul (scale,  fixedpt_fromint(i)), fixedpt_fromint(SCREEN_WIDTH));
+		ci =  c_y - fix_mul(scale, FIX_ONE>>1) + fix_div(fix_mul (scale,  fixedpt_fromint(i)), fixedpt_fromint(SCREEN_WIDTH));
 		for(unsigned int j = t_x; j <= t_x + w; j++)
 		{
-			cr =  c_x - fixedpt_mul(scale, FIXEDPT_ONE>>1) + fixedpt_div(fixedpt_mul (scale,  fixedpt_fromint(j)), fixedpt_fromint(SCREEN_WIDTH));
+			cr =  c_x - fix_mul(scale, FIX_ONE>>1) + fix_div(fix_mul (scale,  fixedpt_fromint(j)), fixedpt_fromint(SCREEN_WIDTH));
 			
 			if (!inCardiod(cr,ci))
 			{
@@ -75,14 +74,14 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 				
 				
 				unsigned short iter = 0;
-				while ((iter < MAX_LOOPS) && (zrsqrd + zisqrd < FIXEDPT_ONE<<2))
+				while ((iter < MAX_LOOPS) && (zrsqrd + zisqrd < FIX_ONE<<2))
 				{	
-					fixedpt temp =zrsqrd-zisqrd + cr;
+					fix temp =zrsqrd-zisqrd + cr;
 					
-					zi = fixedpt_mul(fixedpt_mul(FIXEDPT_ONE<<1, zr),  zi) + ci;
+					zi = fix_mul(fix_mul(FIX_ONE<<1, zr),  zi) + ci;
 					zr = temp;
-					zrsqrd = fixedpt_mul(zr, zr);
-					zisqrd = fixedpt_mul(zi, zi);
+					zrsqrd = fix_mul(zr, zr);
+					zisqrd = fix_mul(zi, zi);
 					
 					iter+=1;
 				}
@@ -101,7 +100,7 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 }
 
 // off_x number of pixels to see to the right
-void draw_offset_right(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y){
+void draw_offset_right(int off_x, fix scale, fix c_x, fix c_y){
 	HourGlass();
 	for(unsigned int j = off_x; j<SCREEN_WIDTH; j++)
 	{
@@ -114,7 +113,7 @@ void draw_offset_right(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y){
 	mandelbrot(SCREEN_WIDTH-off_x, 0,off_x, SCREEN_HEIGHT, scale, c_x, c_y );
 	Bdisp_PutDisp_DD();
 }
-void draw_offset_left(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y)
+void draw_offset_left(int off_x, fix scale, fix c_x, fix c_y)
 {
     HourGlass();
 	for(unsigned int j = SCREEN_WIDTH-off_x; j>0; j--)
@@ -129,7 +128,7 @@ void draw_offset_left(int off_x, fixedpt scale, fixedpt c_x, fixedpt c_y)
 	Bdisp_PutDisp_DD();
 }
 
-void draw_offset_down(int off_y, fixedpt scale, fixedpt c_x, fixedpt c_y){
+void draw_offset_down(int off_y, fix scale, fix c_x, fix c_y){
 	HourGlass();
 	for(unsigned int i = off_y; i<SCREEN_HEIGHT; i++)
 	{
@@ -142,7 +141,7 @@ void draw_offset_down(int off_y, fixedpt scale, fixedpt c_x, fixedpt c_y){
 	mandelbrot(0,SCREEN_HEIGHT-off_y,SCREEN_WIDTH, off_y, scale, c_x, c_y );
 	Bdisp_PutDisp_DD();
 }
-void draw_offset_up(int off_y, fixedpt scale, fixedpt c_x, fixedpt c_y)
+void draw_offset_up(int off_y, fix scale, fix c_x, fix c_y)
 {
     HourGlass();
     for(unsigned int i = SCREEN_HEIGHT-off_y; i>0; i--)
@@ -157,7 +156,7 @@ void draw_offset_up(int off_y, fixedpt scale, fixedpt c_x, fixedpt c_y)
 	Bdisp_PutDisp_DD();
 }
 
-void draw_scale(fixedpt scale, fixedpt c_x, fixedpt c_y)
+void draw_scale(fix scale, fix c_x, fix c_y)
 {
 	mandelbrot(0,0,SCREEN_WIDTH, SCREEN_HEIGHT, scale, c_x, c_y);
 	Bdisp_PutDisp_DD();
@@ -173,10 +172,10 @@ int main(void){
     int key;
    
 	int running = 1;
-	fixedpt c_x = 0;
-	fixedpt c_y = 0;
-	fixedpt scale = FIXEDPT_ONE<<2;
-	fixedpt zoom = FIXEDPT_ONE>>1;
+	fix c_x = 0;
+	fix c_y = 0;
+	fix scale = FIX_ONE<<2;
+	fix zoom = FIX_ONE>>1;
 	draw_scale(scale, c_x,c_y);
     while(running)
     {
@@ -187,32 +186,32 @@ int main(void){
 			 	break;
 			 	
 			 case KEY_CTRL_UP:
-			 	c_y = c_y -fixedpt_div(fixedpt_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	c_y = c_y -fix_div(fix_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
 			 	draw_offset_up(step,scale, c_x, c_y);
 			 	break;
 			 	
 			 case KEY_CTRL_DOWN:
-			 	c_y = c_y + fixedpt_div(fixedpt_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	c_y = c_y + fix_div(fix_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
 			 	draw_offset_down(step,scale, c_x, c_y);
 			 	break;
 			 	
 			 case KEY_CTRL_LEFT:
-			 	c_x = c_x - fixedpt_div(fixedpt_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	c_x = c_x - fix_div(fix_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
 			 	draw_offset_left(step,scale, c_x, c_y);
 			 	break;
 			 
 			 case KEY_CTRL_RIGHT:
-			 	c_x = c_x + fixedpt_div(fixedpt_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
+			 	c_x = c_x + fix_div(fix_mul(scale, fixedpt_fromint(step)), fixedpt_fromint(SCREEN_WIDTH));
 			 	draw_offset_right(step, scale,c_x, c_y);
 			 	break;
 			 
 			 case KEY_CHAR_PLUS:
-				scale = fixedpt_mul(zoom, scale);
+				scale = fix_mul(zoom, scale);
 				draw_scale(scale, c_x, c_y);
 				break;
 				
 			 case KEY_CHAR_MINUS:
-				scale = fixedpt_div(scale,zoom);
+				scale = fix_div(scale,zoom);
 				draw_scale(scale, c_x, c_y);
 				break;
 				
