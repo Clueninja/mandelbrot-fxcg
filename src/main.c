@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 // why float so slow
-#define FIX_FBITS 40
+#define FIX_FBITS 24
 #include "fixed.h"
 
 
@@ -54,11 +54,13 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 	register fix zrsqrd;
 	register fix zisqrd;
 	
+	
 	for(unsigned int i = t_y; i <= t_y + h; i++)
 	{
 		ci =  c_y - (scale>>1) + fix_div(fix_mul (scale,  fix_fromint(i)), fix_fromint(SCREEN_WIDTH));
 		for(unsigned int j = t_x; j <= t_x + w; j++)
 		{
+		    
 			cr =  c_x - (scale>>1) + fix_div(fix_mul (scale,  fix_fromint(j)), fix_fromint(SCREEN_WIDTH));
 			
 			if (!inCardiod(cr,ci))
@@ -254,7 +256,7 @@ short unsigned int heightcolor(fix z, fix z_min, fix z_max) {
          //put the bits together
          return (short unsigned int)(0x0000ffff & (
             fix_toint(fix_mul(fix_fromint(31), r))<<11 |
-            fix_toint(fix_mul(fix_fromint(31), g))<<5 |
+            fix_toint(fix_mul(fix_fromint(63), g))<<5 |
             fix_toint(fix_mul(fix_fromint(31), b))
             ));   
 }

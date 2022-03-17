@@ -1,7 +1,7 @@
 #ifndef FIXED_H
 #define FIXED_H
 
-#define FIX_BITS 64
+#define FIX_BITS 32
 
 // I trust you on this one
 
@@ -10,7 +10,7 @@
         #error "Too many bits after decimal point"
     #endif
 #else
-    #define FIX_FBITS 20
+    #define FIX_FBITS 22
 #endif
 
 #define FIX_ONE ((long long)1<<FIX_FBITS)
