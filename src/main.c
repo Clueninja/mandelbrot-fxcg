@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 // why float so slow
-#define FIX_FBITS 24
+#define FIX_FBITS 25
 #include "fixed.h"
 
 
@@ -57,7 +57,7 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 	
 	for(unsigned int i = t_y; i <= t_y + h; i++)
 	{
-		ci =  c_y - (scale>>1) + fix_div(fix_mul (scale,  fix_fromint(i)), fix_fromint(SCREEN_WIDTH));
+		ci =  c_y - (scale>>2) + fix_div(fix_mul (scale,  fix_fromint(i)), fix_fromint(SCREEN_WIDTH));
 		for(unsigned int j = t_x; j <= t_x + w; j++)
 		{
 		    
