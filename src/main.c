@@ -230,17 +230,17 @@ short unsigned int heightcolor(fix z, fix z_min, fix z_max) {
          //absolute value
          r = (r>0)?r:-r;
          g = (g>0)?g:-g;
-         b = (b>0)?b:-b;   
+         b = (b>0)?b:-b;
          
          //invert
          r = (FIX_ONE>>2)-r;
          g = (fix_div(FIX_ONE, fix_fromint(3)))-g;
-         b = (FIX_ONE>>2)-b;   
+         b = (FIX_ONE>>2)-b;
          
          //scale the chromatic triangles
          r = (r>0)?(fix_mul(fix_fromint(6), r)):0;
-         g = (g>0)?(fix_mul(fix_fromint(6), r)):0;
-         b = (b>0)?(fix_mul(fix_fromint(6), r)):0;   
+         g = (g>0)?(fix_mul(fix_fromint(6), g)):0;
+         b = (b>0)?(fix_mul(fix_fromint(6), b)):0;   
          
          //clip the top of the chromatic triangles
          r = (r>FIX_ONE)?FIX_ONE:r;
@@ -256,7 +256,7 @@ short unsigned int heightcolor(fix z, fix z_min, fix z_max) {
          //put the bits together
          return (short unsigned int)(0x0000ffff & (
             fix_toint(fix_mul(fix_fromint(31), r))<<11 |
-            fix_toint(fix_mul(fix_fromint(31), g))<<5 |
+            fix_toint(fix_mul(fix_fromint(63), g))<<5 |
             fix_toint(fix_mul(fix_fromint(31), b))
             ));   
 }
