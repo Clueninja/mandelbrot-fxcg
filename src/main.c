@@ -70,7 +70,7 @@ void mandelbrot(unsigned int t_x, unsigned int t_y, unsigned int w, unsigned int
 				zrsqrd=0;
 				zisqrd = 0;
 				
-				unsigned short iter = 0;
+				int iter = 0;
 				while ((iter < MAX_LOOPS) && (zrsqrd + zisqrd < FIX_ONE<<2))
 				{	
 					fix temp =zrsqrd-zisqrd + cr;
@@ -217,7 +217,7 @@ int main(void){
 }
 
 
-/*Created by Christopher "Kerm Martian" Mitchell*/
+/*Modified Algorithm Created by Christopher "Kerm Martian" Mitchell*/
 short unsigned int heightcolor(fix z, fix z_min, fix z_max) {
          fix frac = fix_div((z-z_min),(z_max-z_min));
          
@@ -256,7 +256,7 @@ short unsigned int heightcolor(fix z, fix z_min, fix z_max) {
          //put the bits together
          return (short unsigned int)(0x0000ffff & (
             fix_toint(fix_mul(fix_fromint(31), r))<<11 |
-            fix_toint(fix_mul(fix_fromint(63), g))<<5 |
+            fix_toint(fix_mul(fix_fromint(31), g))<<5 |
             fix_toint(fix_mul(fix_fromint(31), b))
             ));   
 }
