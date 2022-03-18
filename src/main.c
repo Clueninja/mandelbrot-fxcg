@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-// why float so slow
+
 #define FIX_FBITS 25
 #include "fixed.h"
 
@@ -245,7 +245,7 @@ short unsigned int heightcolor(fix z, fix z_min, fix z_max) {
          //clip the top of the chromatic triangles
          r = (r>FIX_ONE)?FIX_ONE:r;
          g = (g>FIX_ONE)?FIX_ONE:g;
-         b = (b>FIX_ONE)?FIX_ONE:b;   
+         b = (b>FIX_ONE)?FIX_ONE:b;
          
          //adjust the bottom end of the scale so that z_min is red, not black
          if (frac < FIX_ONE>>2) r = (r+FIX_ONE)>>1;

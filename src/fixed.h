@@ -10,7 +10,7 @@
         #error "Too many bits after decimal point"
     #endif
 #else
-    #define FIX_FBITS 22
+    #define FIX_FBITS 16
 #endif
 
 #define FIX_ONE ((long long)1<<FIX_FBITS)
@@ -23,6 +23,9 @@
 
 // shorten stuff a little
 #define fix_sq(x) fix_mul((x), (x))
+
+// not tested
+#define fix_fromfloat(x) ((long long) ((x) * FIX_ONE))
 
 
 
