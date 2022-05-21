@@ -25,10 +25,10 @@ unsigned int inCardiod(const fix r, const fix i)
 {
 	fix x =  r - (FIX_ONE>>2);
 	fix y = i;
-	
+	// Main Bulb
 	if (fix_sq( fix_sq(x) + fix_sq(y) + (x>>1)) - ((fix_sq(x) + fix_sq(y))>>2)<0)
 		return 1;
-	
+	/*
 	x = r+FIX_ONE;
 	if (fix_sq(x) + fix_sq(y) < FIX_ONE>>4)
 		return 1;
@@ -36,6 +36,7 @@ unsigned int inCardiod(const fix r, const fix i)
 	x = r+ FIX_ONE + (FIX_ONE>>2) + (FIX_ONE>>4);
 	if (fix_sq(x) + fix_sq(y) < FIX_ONE>>8)
 		return 1;
+*/
 	return 0;
 }
 
