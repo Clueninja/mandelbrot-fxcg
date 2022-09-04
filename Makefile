@@ -111,6 +111,13 @@ $(BUILD):
 	@mkdir $@
 
 #---------------------------------------------------------------------------------
+install:
+	rm /run/media/$(USER)/disk/$(TARGET).g3a
+	cp $(TARGET).g3a /run/media/$(USER)/disk
+	udisksctl unmount --block-device /dev/sda1 && udisksctl power-off --block-device /dev/sda
+
+
+#---------------------------------------------------------------------------------
 export CYGWIN := nodosfilewarning
 clean:
 	$(call rmdir,$(BUILD))

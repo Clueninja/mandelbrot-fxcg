@@ -160,7 +160,7 @@ void draw_scale(fix scale, fix c_x, fix c_y)
 }
 
 int main(void){
-	int step = 5;
+	int step = 10;
 	
     Bdisp_EnableColor(1);//Enable 16-bit mode
     Bdisp_AllClr_VRAM();
