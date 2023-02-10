@@ -1,6 +1,6 @@
-#include <fxcg/display.h>
-#include <fxcg/keyboard.h>
-#include <fxcg/misc.h>
+#include "../../../include/fxcg/display.h"
+#include "../../../include/fxcg/keyboard.h"
+#include "../../../include/fxcg/misc.h"
 #include <string.h>
 #include <stdlib.h>
 
